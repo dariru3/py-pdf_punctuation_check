@@ -1,11 +1,10 @@
 import fitz, unicodedata
 
 def check_full_width(input_file:str, pages:list=None):
-    comment_title = "Full-Width Highlighter"
+    comment_name = "Full-Width Highlighter"
     comment = "Found"
-    output_file = input_file.split(".")[0] + " comments.pdf"
     # create matches dictionary for output summary
-    results_summary = {}
+    full_width_matches = {}
     # open pdf
     pdfIn = fitz.open(input_file)
     # Iterate throughout pdf pages
@@ -26,10 +25,10 @@ def check_full_width(input_file:str, pages:list=None):
             if status in full_status:
                 full_width_chars.add(char)
                 # Update summary
-                if char in results_summary:
-                    results_summary[char][0] += 1
+                if char in full_width_matches:
+                    full_width_matches[char][0] += 1
                 else:
-                    results_summary[char] = [1, status]
+                    full_width_matches[char] = [1, status]
 
         # Get the positions of full-width characters in the page
         for char in full_width_chars:
@@ -46,9 +45,10 @@ def check_full_width(input_file:str, pages:list=None):
                         annot.update()
                 start_idx += 1
 
-    print(results_summary)
+    print(full_width_matches)
 
     # Save to output file
+    output_file = input_file.split(".")[0] + " comments.pdf"
     pdfIn.save(output_file,garbage=3,deflate=True)
     pdfIn.close()
 
