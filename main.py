@@ -5,7 +5,6 @@ import config
 
 def highlight_full_width(input_file:str, pages:list=None):
     comment_name = "Full-Width Highlighter"
-    comment = "Found"
     # create matches list for output summary
     full_width_summary = []
     # open pdf
@@ -23,10 +22,30 @@ def highlight_full_width(input_file:str, pages:list=None):
 
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
         get_positions(full_width_chars, text, page, page_highlights)
-        add_highlight_annot(page_highlights, page)
+        add_highlight_annot(page_highlights, page, comment_name)
 
     export_summary(full_width_summary)
     save_output_file(input_file, pdfIn)
+
+def check_full_width(text, full_width_summary):
+    temp_set = set()
+    full_status = ['W', 'F', 'A']
+    for char in text:
+        status = unicodedata.east_asian_width(char)
+        if status in full_status:
+            temp_set.add(char)
+            update_summary(full_width_summary, char, status)
+    return temp_set
+
+def update_summary(full_width_summary:list, char, status):
+    found = False
+    for entry in full_width_summary:
+        if entry['char'] == char:
+            entry['count'] += 1
+            found = True
+            break
+    if not found:
+        full_width_summary.append({'char': char, 'count': 1, 'type': status})
 
 def get_positions(full_width_chars, text, page, page_highlights):
     for char in full_width_chars:
@@ -50,28 +69,18 @@ def handle_matches(matches, char, page_highlights):
             if not any([rects_are_equal(match, rect) for rect in page_highlights[char]]):
                 page_highlights[char].append(match)
 
-def check_full_width(text, full_width_summary):
-    temp_set = set()
-    for char in text:
-        status = unicodedata.east_asian_width(char)
-        full_status = ['W', 'F', 'A']
-        if status in full_status:
-            temp_set.add(char)
-            update_summary(full_width_summary, char, status)
-    return temp_set
-
 def rects_are_equal(rect1, rect2):
     return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
 
-def update_summary(full_width_summary:list, char, status):
-    found = False
-    for entry in full_width_summary:
-        if entry['char'] == char:
-            entry['count'] += 1
-            found = True
-            break
-    if not found:
-        full_width_summary.append({'char': char, 'count': 1, 'type': status})
+def add_highlight_annot(page_highlights:dict, page, comment_name):
+    for char, match_rects in page_highlights.items():
+        for rect in match_rects:
+            annot = page.add_highlight_annot(rect)
+            info = annot.info
+            info["title"] = comment_name
+            info["content"] = char
+            annot.set_info(info)
+            annot.update()
 
 def export_summary(full_width_summary:list):
     fieldnames = ['Character', 'Count', 'Type']
@@ -80,16 +89,10 @@ def export_summary(full_width_summary:list):
         csv_writer.writeheader()
         for entry in full_width_summary:
             csv_writer.writerow({
-                'Character': entry['char'],
-                'Count': entry['count'],
-                'Type': entry['type']
+                fieldnames[0]: entry['char'],
+                fieldnames[1]: entry['count'],
+                fieldnames[2]: entry['type']
             })
-
-def add_highlight_annot(page_highlights:dict, page):
-    for char, match_rects in page_highlights.items():
-        for rect in match_rects:
-            annot = page.add_highlight_annot(rect)
-            annot.update()
 
 def save_output_file(input_file, pdfIn):
     output_file = input_file.split(".")[0] + " fw_highlight.pdf"
