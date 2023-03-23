@@ -19,15 +19,7 @@ def highlight_full_width(input_file:str, pages:list=None):
 
         # Get all the text in the page
         text = page.get_text("text")
-
-        # Split the text by characters and check if each character is full-width
-        full_width_chars = set()
-        for char in text:
-            status = unicodedata.east_asian_width(char)
-            full_status = ['W', 'F', 'A']
-            if status in full_status:
-                full_width_chars.add(char)
-                update_summary(full_width_summary, char, status)
+        full_width_chars = check_full_width(text, full_width_summary)
 
         # Get the positions of full-width characters in the page
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
@@ -53,6 +45,16 @@ def highlight_full_width(input_file:str, pages:list=None):
 
     export_summary(full_width_summary)
     save_output_file(input_file, pdfIn)
+
+def check_full_width(text, full_width_summary):
+    temp_set = set()
+    for char in text:
+        status = unicodedata.east_asian_width(char)
+        full_status = ['W', 'F', 'A']
+        if status in full_status:
+            temp_set.add(char)
+            update_summary(full_width_summary, char, status)
+    return temp_set
 
 def rects_are_equal(rect1, rect2):
     return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
