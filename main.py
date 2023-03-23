@@ -7,7 +7,7 @@ def check_full_width(input_file:str, pages:list=None):
     comment_name = "Full-Width Highlighter"
     comment = "Found"
     # create matches list for output summary
-    full_width_matches = []
+    full_width_summary = []
     # open pdf
     pdfIn = fitz.open(input_file)
     # Iterate throughout pdf pages
@@ -27,15 +27,7 @@ def check_full_width(input_file:str, pages:list=None):
             full_status = ['W', 'F', 'A']
             if status in full_status:
                 full_width_chars.add(char)
-                # Update summary
-                found = False
-                for entry in full_width_matches:
-                    if entry['char'] == char:
-                        entry['count'] += 1
-                        found = True
-                        break
-                if not found:
-                    full_width_matches.append({'char': char, 'count': 1, 'type': status})
+                update_summary(full_width_summary, char, status)
 
         # Get the positions of full-width characters in the page
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
@@ -68,7 +60,7 @@ def check_full_width(input_file:str, pages:list=None):
     with open("summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
-        for entry in full_width_matches:
+        for entry in full_width_summary:
             csv_writer.writerow({
                 'Character': entry['char'],
                 'Count': entry['count'],
@@ -76,11 +68,21 @@ def check_full_width(input_file:str, pages:list=None):
             })
 
     # Save to output file
-    output_file = input_file.split(".")[0] + " comments.pdf"
+    output_file = input_file.split(".")[0] + " full_width.pdf"
     pdfIn.save(output_file, garbage=3, deflate=True)
     pdfIn.close()
 
 def rects_are_equal(rect1, rect2):
     return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
+
+def update_summary(full_width_summary:list, char, status):
+    found = False
+    for entry in full_width_summary:
+        if entry['char'] == char:
+            entry['count'] += 1
+            found = True
+            break
+    if not found:
+        full_width_summary.append({'char': char, 'count': 1, 'type': status})
 
 check_full_width(input_file=config.config["source_filename"])
