@@ -49,13 +49,9 @@ def check_full_width(input_file:str, pages:list=None):
                                 page_highlights[char].append(match)
                 start_idx += 1
 
-        # Add highlight annotations
-        for char, match_rects in page_highlights.items():
-            for rect in match_rects:
-                annot = page.add_highlight_annot(rect)
-                annot.update()
+        add_highlight_anno(page_highlights, page)
 
-    export_summary_update(full_width_summary)
+    export_summary(full_width_summary)
 
     # Save to output file
     output_file = input_file.split(".")[0] + " fw_highlight.pdf"
@@ -75,7 +71,7 @@ def update_summary(full_width_summary:list, char, status):
     if not found:
         full_width_summary.append({'char': char, 'count': 1, 'type': status})
 
-def export_summary_update(full_width_summary:list):
+def export_summary(full_width_summary:list):
     fieldnames = ['Character', 'Count', 'Type']
     with open("summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -86,5 +82,11 @@ def export_summary_update(full_width_summary:list):
                 'Count': entry['count'],
                 'Type': entry['type']
             })
+
+def add_highlight_anno(page_highlights:dict, page):
+    for char, match_rects in page_highlights.items():
+        for rect in match_rects:
+            annot = page.add_highlight_annot(rect)
+            annot.update()
 
 check_full_width(input_file=config.config["source_filename"])
