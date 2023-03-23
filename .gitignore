@@ -3,3 +3,5 @@ test.py
 *.csv
 summary.txt
 test_files/
+config.py
+__pycache__/
