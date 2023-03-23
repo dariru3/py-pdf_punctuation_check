@@ -1,4 +1,5 @@
 import fitz, unicodedata
+import config
 
 def rects_are_equal(rect1, rect2):
     return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
@@ -66,4 +67,4 @@ def check_full_width(input_file:str, pages:list=None):
     pdfIn.save(output_file, garbage=3, deflate=True)
     pdfIn.close()
 
-check_full_width(input_file="full_width.pdf")
+check_full_width(input_file=config.config["source_filename"])
