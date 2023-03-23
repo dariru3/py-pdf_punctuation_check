@@ -21,24 +21,25 @@ def highlight_full_width(input_file:str, pages:list=None):
         text = page.get_text("text")
         full_width_chars = check_full_width(text, full_width_summary)
 
-        # Get the positions of full-width characters in the page
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
-        for char in full_width_chars:
-            start_idx = 0
-            while True:
-                start_idx = text.find(char, start_idx)
-                if start_idx == -1:
-                    break
-                end_idx = start_idx + len(char)
-                matches = page.search_for(text[start_idx:end_idx])
-                if matches:
-                    handle_matches(matches, char, page_highlights)
-                start_idx += 1
-
-        add_highlight_anno(page_highlights, page)
+        get_positions(full_width_chars, text, page, page_highlights)
+        add_highlight_annot(page_highlights, page)
 
     export_summary(full_width_summary)
     save_output_file(input_file, pdfIn)
+
+def get_positions(full_width_chars, text, page, page_highlights):
+    for char in full_width_chars:
+        start_idx = 0
+        while True:
+            start_idx = text.find(char, start_idx)
+            if start_idx == -1:
+                break
+            end_idx = start_idx + len(char)
+            matches = page.search_for(text[start_idx:end_idx])
+            if matches:
+                handle_matches(matches, char, page_highlights)
+            start_idx += 1
 
 def handle_matches(matches, char, page_highlights):
     for match in matches:
@@ -48,7 +49,6 @@ def handle_matches(matches, char, page_highlights):
             # Check if the match rectangle is not already in the list
             if not any([rects_are_equal(match, rect) for rect in page_highlights[char]]):
                 page_highlights[char].append(match)
-
 
 def check_full_width(text, full_width_summary):
     temp_set = set()
@@ -85,7 +85,7 @@ def export_summary(full_width_summary:list):
                 'Type': entry['type']
             })
 
-def add_highlight_anno(page_highlights:dict, page):
+def add_highlight_annot(page_highlights:dict, page):
     for char, match_rects in page_highlights.items():
         for rect in match_rects:
             annot = page.add_highlight_annot(rect)
