@@ -3,7 +3,7 @@ import fitz
 import unicodedata
 import config
 
-def check_full_width(input_file:str, pages:list=None):
+def highlight_full_width(input_file:str, pages:list=None):
     comment_name = "Full-Width Highlighter"
     comment = "Found"
     # create matches list for output summary
@@ -52,11 +52,7 @@ def check_full_width(input_file:str, pages:list=None):
         add_highlight_anno(page_highlights, page)
 
     export_summary(full_width_summary)
-
-    # Save to output file
-    output_file = input_file.split(".")[0] + " fw_highlight.pdf"
-    pdfIn.save(output_file, garbage=3, deflate=True)
-    pdfIn.close()
+    save_output_file(input_file, pdfIn)
 
 def rects_are_equal(rect1, rect2):
     return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
@@ -89,4 +85,9 @@ def add_highlight_anno(page_highlights:dict, page):
             annot = page.add_highlight_annot(rect)
             annot.update()
 
-check_full_width(input_file=config.config["source_filename"])
+def save_output_file(input_file, pdfIn):
+    output_file = input_file.split(".")[0] + " fw_highlight.pdf"
+    pdfIn.save(output_file, garbage=3, deflate=True)
+    pdfIn.close()
+
+highlight_full_width(input_file=config.config["source_filename"])
