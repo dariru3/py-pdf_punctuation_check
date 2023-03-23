@@ -32,19 +32,23 @@ def highlight_full_width(input_file:str, pages:list=None):
                 end_idx = start_idx + len(char)
                 matches = page.search_for(text[start_idx:end_idx])
                 if matches:
-                    for match in matches:
-                        if char not in page_highlights:
-                            page_highlights[char] = [match]
-                        else:
-                            # Check if the match rectangle is not already in the list
-                            if not any([rects_are_equal(match, rect) for rect in page_highlights[char]]):
-                                page_highlights[char].append(match)
+                    handle_matches(matches, char, page_highlights)
                 start_idx += 1
 
         add_highlight_anno(page_highlights, page)
 
     export_summary(full_width_summary)
     save_output_file(input_file, pdfIn)
+
+def handle_matches(matches, char, page_highlights):
+    for match in matches:
+        if char not in page_highlights:
+            page_highlights[char] = [match]
+        else:
+            # Check if the match rectangle is not already in the list
+            if not any([rects_are_equal(match, rect) for rect in page_highlights[char]]):
+                page_highlights[char].append(match)
+
 
 def check_full_width(text, full_width_summary):
     temp_set = set()
