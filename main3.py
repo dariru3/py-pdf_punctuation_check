@@ -1,14 +1,13 @@
-import fitz, unicodedata
+import csv
+import fitz
+import unicodedata
 import config
-
-def rects_are_equal(rect1, rect2):
-    return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
 
 def check_full_width(input_file:str, pages:list=None):
     comment_name = "Full-Width Highlighter"
     comment = "Found"
-    # create matches dictionary for output summary
-    full_width_matches = {}
+    # create matches list for output summary
+    full_width_matches = []
     # open pdf
     pdfIn = fitz.open(input_file)
     # Iterate throughout pdf pages
@@ -29,10 +28,14 @@ def check_full_width(input_file:str, pages:list=None):
             if status in full_status:
                 full_width_chars.add(char)
                 # Update summary
-                if char in full_width_matches:
-                    full_width_matches[char][0] += 1
-                else:
-                    full_width_matches[char] = [1, status]
+                found = False
+                for entry in full_width_matches:
+                    if entry['char'] == char:
+                        entry['count'] += 1
+                        found = True
+                        break
+                if not found:
+                    full_width_matches.append({'char': char, 'count': 1, 'type': status})
 
         # Get the positions of full-width characters in the page
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
@@ -60,11 +63,24 @@ def check_full_width(input_file:str, pages:list=None):
                 annot = page.add_highlight_annot(rect)
                 annot.update()
 
-    print(full_width_matches)
-    
+    # Write the results to a CSV file using DictWriter
+    fieldnames = ['Character', 'Count', 'Type']
+    with open("summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
+        csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        csv_writer.writeheader()
+        for entry in full_width_matches:
+            csv_writer.writerow({
+                'Character': entry['char'],
+                'Count': entry['count'],
+                'Type': entry['type']
+            })
+
     # Save to output file
     output_file = input_file.split(".")[0] + " comments.pdf"
     pdfIn.save(output_file, garbage=3, deflate=True)
     pdfIn.close()
+
+def rects_are_equal(rect1, rect2):
+    return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
 
 check_full_width(input_file=config.config["source_filename"])
