@@ -55,20 +55,10 @@ def check_full_width(input_file:str, pages:list=None):
                 annot = page.add_highlight_annot(rect)
                 annot.update()
 
-    # Write the results to a CSV file using DictWriter
-    fieldnames = ['Character', 'Count', 'Type']
-    with open("summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
-        csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        csv_writer.writeheader()
-        for entry in full_width_summary:
-            csv_writer.writerow({
-                'Character': entry['char'],
-                'Count': entry['count'],
-                'Type': entry['type']
-            })
+    export_summary_update(full_width_summary)
 
     # Save to output file
-    output_file = input_file.split(".")[0] + " full_width.pdf"
+    output_file = input_file.split(".")[0] + " fw_highlight.pdf"
     pdfIn.save(output_file, garbage=3, deflate=True)
     pdfIn.close()
 
@@ -84,5 +74,17 @@ def update_summary(full_width_summary:list, char, status):
             break
     if not found:
         full_width_summary.append({'char': char, 'count': 1, 'type': status})
+
+def export_summary_update(full_width_summary:list):
+    fieldnames = ['Character', 'Count', 'Type']
+    with open("summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
+        csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        csv_writer.writeheader()
+        for entry in full_width_summary:
+            csv_writer.writerow({
+                'Character': entry['char'],
+                'Count': entry['count'],
+                'Type': entry['type']
+            })
 
 check_full_width(input_file=config.config["source_filename"])
