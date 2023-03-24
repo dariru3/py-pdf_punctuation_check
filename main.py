@@ -95,7 +95,7 @@ def export_summary(full_width_summary:list):
             })
 
 def save_output_file(input_file, pdfIn):
-    output_file = input_file.split(".")[0] + " fw_highlight.pdf"
+    output_file = input_file.split(".")[0] + " full-width_highlight.pdf"
     pdfIn.save(output_file, garbage=3, deflate=True)
     pdfIn.close()
 

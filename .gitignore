@@ -5,3 +5,4 @@ summary.txt
 test_files/
 config.py
 __pycache__/
+.DS_Store
