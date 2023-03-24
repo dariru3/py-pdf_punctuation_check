@@ -84,7 +84,7 @@ def add_highlight_annot(page_highlights:dict, page, comment_name):
 
 def export_summary(full_width_summary:list):
     fieldnames = ['Character', 'Count', 'Type']
-    with open("summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
+    with open("full-width_summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
         for entry in full_width_summary:
