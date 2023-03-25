@@ -8,6 +8,8 @@ def check_full_width(text):
         status = unicodedata.east_asian_width(char)
         if status not in full_status:
             temp_set.add(char)
+    if temp_set == set():
+        temp_set = "empty"
     print("Check 1:", temp_set)
     return temp_set
 
@@ -17,6 +19,8 @@ def check_full_width2(text):
     for char in text:
         if pattern.search(char) is not None:
             temp_set.add(char)
+    if temp_set == set():
+        temp_set = "empty"
     print("Check 2:", temp_set)
     return temp_set
 
