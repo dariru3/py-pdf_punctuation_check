@@ -25,10 +25,12 @@ def check_full_width2(text):
     return temp_set
 
 def check_full_width3(text):
-    pattern = re.compile(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\uFF01-\uFF5E\uFF65-\uFF9F]+")
     temp_set = set()
+    full_status = ['W', 'F', 'A']
+    pattern = re.compile("[\uFF01-\uFF5E]+")
     for char in text:
-        if pattern.search(char) is not None:
+        status = unicodedata.east_asian_width(char)
+        if status not in full_status and pattern.search(char) is not None:
             temp_set.add(char)
     if temp_set == set():
         temp_set = "empty"
