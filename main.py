@@ -1,6 +1,6 @@
 import csv
 import fitz
-import unicodedata
+import unicodedata, re
 import config
 
 def highlight_full_width(input_file:str, pages:list=None):
@@ -30,9 +30,10 @@ def highlight_full_width(input_file:str, pages:list=None):
 def check_full_width(text, full_width_summary):
     temp_set = set()
     full_status = ['W', 'F', 'A']
+    pattern = re.compile("[\uFF01-\uFF5E]+")
     for char in text:
         status = unicodedata.east_asian_width(char)
-        if status in full_status:
+        if status in full_status and pattern.search(char) is None:
             temp_set.add(char)
             update_summary(full_width_summary, char, status)
     return temp_set
