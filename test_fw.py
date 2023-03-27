@@ -37,15 +37,27 @@ def check_full_width3(text):
     print("Check 3:", temp_set)
     return temp_set
 
+def check_full_width4(text):
+    temp_set = []
+    full_status = ['W', 'F', 'A']
+    pattern = re.compile("[\uFF01-\uFF5E]+")
+    for char in text:
+        status = unicodedata.east_asian_width(char)
+        if status in full_status and pattern.search(char) is None:
+            temp_set.append([char, status])
+    print(temp_set)
+
 text = "™㎎㎏㎚㎛㎜㎝㎞㎟㎠㎢㎣㎤㎦㎽㎾㎿ℓ№™₤…ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹⅺⅻ△"
 # print("text len:", len(text))
 print("test 1")
 check_full_width(text)
 check_full_width2(text)
 check_full_width3(text)
+check_full_width4(text)
 
 text2 = '【】「」・※●（）％＆℃㎡㎥：￥'
 print("test 2")
 check_full_width(text2)
 check_full_width2(text2)
 check_full_width3(text2)
+check_full_width4(text2)
