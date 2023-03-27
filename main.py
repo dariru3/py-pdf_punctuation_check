@@ -79,7 +79,7 @@ def add_highlight_annot(page_highlights:dict, page, comment_name):
             annot = page.add_highlight_annot(rect)
             info = annot.info
             info["title"] = comment_name
-            info["content"] = char
+            info["content"] = f"Replace {char} with half-width version"
             annot.set_info(info)
             annot.update()
 
