@@ -45,7 +45,7 @@ def check_full_width(text, full_width_summary):
     for char in text:
         if char not in excluded_chars:
             status = unicodedata.east_asian_width(char)
-            if status in full_status and pattern.search(char) is None:
+            if status in full_status or pattern.search(char):
                 temp_set.add(char)
                 update_summary(full_width_summary, char, status)
     return temp_set
