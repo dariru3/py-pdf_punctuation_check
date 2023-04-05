@@ -31,11 +31,23 @@ def check_full_width(text, full_width_summary):
     temp_set = set()
     full_status = ['W', 'F', 'A']
     pattern = re.compile("[\uFF01-\uFF5E]+")
+
+    excluded_chars = {
+        '\u0022',  # Half-width double quote mark (")
+        '\u0027',  # Half-width single quote mark/apostrophe (')
+        '\u2018',  # Left single quotation mark (‘)
+        '\u2019',  # Right single quotation mark (’)
+        '\u201C',  # Left double quotation mark (“)
+        '\u201D',  # Right double quotation mark (”)
+        '\u2014',  # Em dash (—)
+    }
+
     for char in text:
-        status = unicodedata.east_asian_width(char)
-        if status in full_status and pattern.search(char) is None:
-            temp_set.add(char)
-            update_summary(full_width_summary, char, status)
+        if char not in excluded_chars:
+            status = unicodedata.east_asian_width(char)
+            if status in full_status or pattern.search(char):
+                temp_set.add(char)
+                update_summary(full_width_summary, char, status)
     return temp_set
 
 def update_summary(full_width_summary:list, char, status):
