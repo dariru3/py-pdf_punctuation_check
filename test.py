@@ -30,10 +30,13 @@ def check_full_width(text):
     return target_set
 
 class TestCheckFullWidth(unittest.TestCase):
-    def test_check_fw_string1(self):
-        result_set = check_full_width(string1)
-        for char in result_set:
-            self.assertIn(char, full_width_chars, f'Expected {char} to be in {full_width_chars}')
+    def test_check_full_width(self):
+        test_strings = [string1, string2, string3]
+        for string in test_strings:
+            with self.subTest(string):
+                result_set = check_full_width(string)
+                for char in result_set:
+                    self.assertIn(char, full_width_chars, f'Expected {char} to be in {full_width_chars}')
 
 if __name__ == '__main__':
     unittest.main()
