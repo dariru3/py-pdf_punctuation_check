@@ -38,5 +38,12 @@ class TestCheckFullWidth(unittest.TestCase):
                 for char in result_set:
                     self.assertIn(char, full_width_chars, f'Expected {char} to be in {full_width_chars}')
 
-if __name__ == '__main__':
-    unittest.main()
+# if __name__ == '__main__':
+#     unittest.main()
+
+file_path = "output_file.txt"
+with open(file_path, 'r', encoding='utf-8') as file:
+    file_content = file.read()
+
+results = check_full_width(file_content)
+print(results)
