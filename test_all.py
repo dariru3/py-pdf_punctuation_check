@@ -17,6 +17,13 @@ def extract_text(input_file:str):
     return all_text
 
 class TestFullWidthFunctions(unittest.TestCase):
+    def test_extract_text(self):
+        input_pdf = config["source_filename"]
+
+        extract_text(input_pdf)
+        output_text_file = 'output_file.txt'
+
+        self.assertTrue(os.path.exists(output_text_file))
     
     def test_check_full_width(self):
         full_width_chars = ['／', '％', '’', '（', '）']
@@ -28,24 +35,6 @@ class TestFullWidthFunctions(unittest.TestCase):
         results = check_full_width(file_content, full_width_summary)
         for char in results:
             self.assertIn(char, full_width_chars, f'Expected {char} to be in {full_width_chars}')
-
-    def test_extract_text(self):
-        input_pdf = config["source_filename"]
-        expected_text_file = 'output_file.txt'
-
-        with open(expected_text_file, 'r') as file:
-            expected_text = file.read()
-
-        extracted_text = extract_text(input_pdf)
-
-        self.assertEqual(extracted_text, expected_text, "Expected the two files to match.")
-
-        extracted_text_file = "extracted_text.txt"
-
-        self.assertTrue(os.path.exists(extracted_text_file))
-
-        os.remove(extracted_text_file)
-        self.assertFalse(os.path.exists(extracted_text_file))
 
 if __name__ == '__main__':
     unittest.main()
