@@ -27,10 +27,10 @@ def highlight_punctuation_errors(input_file:str, pages:list=None):
     export_summary(error_summary)
     save_output_file(input_file, pdfIn)
 
-def check_punctuation_errors(text, summary):
-    errors = set()
+def check_full_width_chars(text):
+    full_width_chars = set()
     full_status = ['W', 'F', 'A']
-    pattern = re.compile("[\uFF01-\uFF5E]+")
+    full_width_pattern = re.compile("[\uFF01-\uFF5E]+")
 
     excluded_chars = {
         '\u0022',  # Half-width double quote mark (")
@@ -45,10 +45,34 @@ def check_punctuation_errors(text, summary):
     for char in text:
         if char not in excluded_chars:
             status = unicodedata.east_asian_width(char)
-            if status in full_status or pattern.search(char):
-                temp_set.add(char)
-                update_summary(full_width_summary, char, status)
-    return temp_set
+            if status in full_status or full_width_pattern.search(char):
+                full_width_chars.add(char)
+
+    return full_width_chars
+
+def check_punctuation_patterns(text):
+    punctuation_errors = set()
+    patterns = re.compile(
+        (r"[a-zA-Z0-9][.!?]\s{2}"), # Double space after punctuation,
+        (r"['\"]"), # Straight quotes
+        (r"\s[.,;:?!'\[\]{}()“”‘’&%$¥—-]\s"), # Space before and after punctuation
+        (r'\s["’”](?=[a-zA-Z0-9])'), # Space before closing quotation mark followed by a character
+        (r"[.,;:?!'\[\]{}()“”‘’&%$¥—-][.,;:?!'\[\]{}()“”‘’&%$¥—-]") # Same punctuation is used twice in a row
+    )
+
+    for match in patterns.finditer(text):
+        error_char = match.group()
+        punctuation_errors.add(error_char)
+
+    return punctuation_errors
+
+def check_punctuation_errors(text, summary):
+    errors = check_full_width_chars(text) | check_punctuation_patterns(text)
+
+    for error_char in errors:
+        update_summary(summary, error_char)
+
+    return errors
 
 def update_summary(summary:list, char):
     found = False
