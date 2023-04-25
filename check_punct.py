@@ -1,6 +1,6 @@
 import csv
 import fitz
-import unicodedata, re
+import re
 from config import config
 
 def highlight_punctuation_errors(input_file:str, pages:list=None):
@@ -29,26 +29,20 @@ def highlight_punctuation_errors(input_file:str, pages:list=None):
 
 def check_punctuation_errors(text, summary):
     errors = set()
-    full_status = ['W', 'F', 'A']
-    pattern = re.compile("[\uFF01-\uFF5E]+")
-
-    excluded_chars = {
-        '\u0022',  # Half-width double quote mark (")
-        '\u0027',  # Half-width single quote mark/apostrophe (')
-        '\u2018',  # Left single quotation mark (‘)
-        '\u2019',  # Right single quotation mark (’)
-        '\u201C',  # Left double quotation mark (“)
-        '\u201D',  # Right double quotation mark (”)
-        '\u2014',  # Em dash (—)
-    }
-
-    for char in text:
-        if char not in excluded_chars:
-            status = unicodedata.east_asian_width(char)
-            if status in full_status or pattern.search(char):
-                temp_set.add(char)
-                update_summary(full_width_summary, char, status)
-    return temp_set
+    patterns = [
+        (r"[a-zA-Z0-9][.!?]\s{2}"), # Double space after punctuation,
+        (r"['\"]"), # Straight quotes
+        (r"\s[.,;:?!'\[\]{}()“”‘’&%$¥—-]\s"), # Space before and after punctuation
+        (r'\s["’”](?=[a-zA-Z0-9])'), # Space before closing quotation mark followed by a character
+        (r"[.,;:?!'\[\]{}()“”‘’&%$¥—-][.,;:?!'\[\]{}()“”‘’&%$¥—-]") # Same punctuation is used twice in a row
+    ]
+    for pattern in patterns:
+        compiled_pattern = re.compile(pattern)
+        for match in compiled_pattern.finditer(text):
+            error_char = match.group()
+            errors.add(error_char)
+            update_summary(summary, error_char)
+    return errors
 
 def update_summary(summary:list, char):
     found = False
