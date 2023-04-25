@@ -42,39 +42,55 @@ def check_full_width_chars(text):
         '\u2014',  # Em dash (—)
     }
 
+    status_descriptions = {
+        'W': 'Wide',
+        'F': 'Full-width',
+        'A': 'Ambiguous'
+    }
+
     for char in text:
         if char not in excluded_chars:
             status = unicodedata.east_asian_width(char)
             if status in full_status or full_width_pattern.search(char):
-                full_width_chars.add(char)
+                description = status_descriptions.get(status, 'Unknown status')
+                full_width_chars.add((char, description))
 
     return full_width_chars
 
 def check_punctuation_patterns(text):
     punctuation_errors = set()
-    patterns = re.compile(
-        (r"[a-zA-Z0-9][.!?]\s{2}"), # Double space after punctuation,
-        (r"['\"]"), # Straight quotes
-        (r"\s[.,;:?!'\[\]{}()“”‘’&%$¥—-]\s"), # Space before and after punctuation
-        (r'\s["’”](?=[a-zA-Z0-9])'), # Space before closing quotation mark followed by a character
-        (r"[.,;:?!'\[\]{}()“”‘’&%$¥—-][.,;:?!'\[\]{}()“”‘’&%$¥—-]") # Same punctuation is used twice in a row
+    pattern = re.compile(
+        r"(?P<double_space>[a-zA-Z0-9][.!?]\s{2})|"  # Double space after punctuation
+        r"(?P<straight_quotes>['\"])|"  # Straight quotes
+        r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’&%$¥—-]\s)|"  # Space before and after punctuation
+        r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
+        r"(?P<repeated_punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-][.,;:?!'\[\]{}()“”‘’&%$¥—-])"  # Same punctuation is used twice in a row
     )
 
-    for match in patterns.finditer(text):
+    for match in pattern.finditer(text):
+        error_type = match.lastgroup
         error_char = match.group()
-        punctuation_errors.add(error_char)
+        error_description = {
+            'double_space': 'Double space after punctuation',
+            'straight_quotes': 'Straight quotes',
+            'space_around_punct': 'Space before and after punctuation',
+            'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
+            'repeated_punct': 'Same punctuation is used twice in a row'
+        }.get(error_type, 'Unknown error')
+
+        punctuation_errors.add((error_char, error_description))
 
     return punctuation_errors
 
 def check_punctuation_errors(text, summary):
     errors = check_full_width_chars(text) | check_punctuation_patterns(text)
 
-    for error_char in errors:
-        update_summary(summary, error_char)
+    for error_char, error_description in errors:
+        update_summary(summary, error_char, error_description)
 
     return errors
 
-def update_summary(summary:list, char):
+def update_summary(summary:list, char, description):
     found = False
     for entry in summary:
         if entry['char'] == char:
@@ -82,7 +98,7 @@ def update_summary(summary:list, char):
             found = True
             break
     if not found:
-        summary.append({'char': char, 'count': 1})
+        summary.append({'char': char, 'count': 1, 'description': description})
 
 def get_positions(target_chars, text, page, page_highlights):
     for char in target_chars:
