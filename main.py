@@ -27,7 +27,7 @@ def highlight_punctuation_errors(input_file:str, pages:list=None):
     export_summary(error_summary)
     save_output_file(input_file, pdfIn)
 
-def check_full_width_chars(text):
+def check_full_width_chars(text, summary):
     full_width_chars = set()
     full_status = ['W', 'F', 'A']
     full_width_pattern = re.compile("[\uFF01-\uFF5E]+")
@@ -54,10 +54,11 @@ def check_full_width_chars(text):
             if status in full_status or full_width_pattern.search(char):
                 description = status_descriptions.get(status, 'Unknown status')
                 full_width_chars.add((char, description))
+                update_summary(summary, char, description)
 
     return full_width_chars
 
-def check_punctuation_patterns(text):
+def check_punctuation_patterns(text, summary):
     punctuation_errors = set()
     pattern = re.compile(
         r"(?P<double_space>[a-zA-Z0-9][.!?]\s{2})|"  # Double space after punctuation
@@ -79,15 +80,15 @@ def check_punctuation_patterns(text):
         }.get(error_type, 'Unknown error')
 
         punctuation_errors.add((error_char, error_description))
+        update_summary(summary, error_char, error_description)
 
     return punctuation_errors
 
 def check_punctuation_errors(text, summary):
-    errors = check_full_width_chars(text) | check_punctuation_patterns(text)
+    errors = check_full_width_chars(text, summary) | check_punctuation_patterns(text, summary)
     error_characters = []
     for error_char, error_description in errors:
         error_characters.append(error_char)
-        update_summary(summary, error_char, error_description)
 
     return error_characters
 
