@@ -88,7 +88,7 @@ def check_punctuation_errors(text, summary):
     errors = check_full_width_chars(text, summary) | check_punctuation_patterns(text, summary)
     error_characters = []
     for error_char, error_description in errors:
-        error_characters.append(error_char)
+        error_characters.append([error_char, error_description])
 
     return error_characters
 
@@ -103,7 +103,7 @@ def update_summary(summary:list, char, description):
         summary.append({'char': char, 'count': 1, 'description': description})
 
 def get_positions(target_chars, text, page, page_highlights):
-    for char in target_chars:
+    for char, description in target_chars:
         start_idx = 0
         while True:
             start_idx = text.find(char, start_idx)
@@ -112,28 +112,31 @@ def get_positions(target_chars, text, page, page_highlights):
             end_idx = start_idx + len(char)
             matches = page.search_for(text[start_idx:end_idx])
             if matches:
-                handle_matches(matches, char, page_highlights)
+                handle_matches(matches, char, description, page_highlights)
             start_idx += 1
 
-def handle_matches(matches, char, page_highlights):
+def handle_matches(matches, char, description, page_highlights):
     for match in matches:
         if char not in page_highlights:
-            page_highlights[char] = [match]
+            page_highlights[char] = {"matches": match, "description": description}
         else:
             # Check if the match rectangle is not already in the list
-            if not any([rects_are_equal(match, rect) for rect in page_highlights[char]]):
-                page_highlights[char].append(match)
+            if not any([rects_are_equal(match, rect) for rect in page_highlights[char]["matches"]]):
+                page_highlights[char]["matches"].append(match)
 
 def rects_are_equal(rect1, rect2):
     return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
 
 def add_highlight_annot(page_highlights:dict, page, comment_name):
-    for char, match_rects in page_highlights.items():
+    # print(f"Page highlights: {page_highlights}")
+    for char, char_data in page_highlights.items():
+        match_rects = char_data["matches"]
+        description = char_data["description"]
         for rect in match_rects:
             annot = page.add_highlight_annot(rect)
             info = annot.info
             info["title"] = comment_name
-            info["content"] = f"Error found: {char}"
+            info["content"] = f"Error found: {char} ({description})"
             annot.set_info(info)
             annot.update()
 
