@@ -137,14 +137,15 @@ def add_highlight_annot(page_highlights:dict, page, comment_name):
             annot.update()
 
 def export_summary(error_summary:list):
-    fieldnames = ['Character', 'Count']
+    fieldnames = ['Character', 'Count', 'Description']
     with open("error_summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
         for entry in error_summary:
             csv_writer.writerow({
                 fieldnames[0]: entry['char'],
-                fieldnames[1]: entry['count']
+                fieldnames[1]: entry['count'],
+                fieldnames[2]: entry['description']
             })
 
 def save_output_file(input_file, pdfIn):
