@@ -84,11 +84,12 @@ def check_punctuation_patterns(text):
 
 def check_punctuation_errors(text, summary):
     errors = check_full_width_chars(text) | check_punctuation_patterns(text)
-
+    error_characters = []
     for error_char, error_description in errors:
+        error_characters.append(error_char)
         update_summary(summary, error_char, error_description)
 
-    return errors
+    return error_characters
 
 def update_summary(summary:list, char, description):
     found = False
