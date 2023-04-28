@@ -118,7 +118,7 @@ def get_positions(target_chars, text, page, page_highlights):
 def handle_matches(matches, char, description, page_highlights):
     for match in matches:
         if char not in page_highlights:
-            page_highlights[char] = {"matches": match, "description": description}
+            page_highlights[char] = {"matches": [match], "description": description}
         else:
             # Check if the match rectangle is not already in the list
             if not any([rects_are_equal(match, rect) for rect in page_highlights[char]["matches"]]):
