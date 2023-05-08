@@ -61,7 +61,7 @@ def check_full_width_chars(text, summary):
 def check_punctuation_patterns(text, summary):
     punctuation_errors = set()
     pattern = re.compile(
-        r"(?P<double_space>[a-zA-Z0-9][.!?]\s{2})|"  # Double space after punctuation
+        r"(?P<double_space>(?<=\S)[.!?]\s{2}(?=\S))|"  # Double space after punctuation
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’&%$¥—-]\s)|"  # Space before and after punctuation
         r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
@@ -157,4 +157,5 @@ def save_output_file(input_file, pdfIn):
     pdfIn.save(output_file, garbage=3, deflate=True)
     pdfIn.close()
 
-highlight_punctuation_errors(input_file=config["source_filename"])
+if __name__ == '__main__':
+    highlight_punctuation_errors(input_file=config["source_filename"])
