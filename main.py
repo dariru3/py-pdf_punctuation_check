@@ -121,11 +121,11 @@ def handle_matches(matches, char, description, page_highlights):
             page_highlights[char] = {"matches": [match], "description": description}
         else:
             # Check if the match rectangle is not already in the list
-            if not any([rects_are_equal(match, rect) for rect in page_highlights[char]["matches"]]):
+            if not any([rects_are_equal(match, rect, threshold=1) for rect in page_highlights[char]["matches"]]):
                 page_highlights[char]["matches"].append(match)
 
-def rects_are_equal(rect1, rect2):
-    return all([abs(rect1[i] - rect2[i]) < 1e-6 for i in range(4)])
+def rects_are_equal(rect1, rect2, threshold=1e-6):
+    return all([abs(rect1[i] - rect2[i]) < threshold for i in range(4)])
 
 def add_highlight_annot(page_highlights:dict, page, comment_name):
     # print(f"Page highlights: {page_highlights}")
