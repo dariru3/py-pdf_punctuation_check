@@ -43,9 +43,9 @@ def check_full_width_chars(text, summary):
     }
 
     status_descriptions = {
-        'W': 'Wide',
-        'F': 'Full-width',
-        'A': 'Ambiguous'
+        'W': 'Full-width: Wide',
+        'F': 'Full-width: Full-width',
+        'A': 'Full-width: Ambiguous'
     }
 
     for char in text:
