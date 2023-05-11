@@ -65,7 +65,7 @@ def check_punctuation_patterns(text, summary):
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
         r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
-        r"(?P<repeated_punct>([.,;:?!'\[\]{}()“”‘’&%$¥—-])\2)|"  # Same punctuation is used twice in a row
+        r"(?P<repeated_punct>([.,;:?!'\[\]{}()“”‘’&%$¥—-])\1)|"  # Same punctuation is used twice in a row
         r"(?P<no_closing_parenthesis>\([^)]*$)" # Match a parethesis not closed
     )
 
