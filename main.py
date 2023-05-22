@@ -61,11 +61,12 @@ def check_full_width_chars(text, summary):
 def check_punctuation_patterns(text, summary):
     punctuation_errors = set()
     pattern = re.compile(
-        # r"(?P<double_space>(?<=\S)[.!?]\s{2}(?=\S))|"  # Double space after punctuation
+        # r"(?P<double_space>(?<=\S)[.!?]\s{2}(?=\S))|"  # Double space after punctuation [removed for false-positives]
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
         r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
-        r"(?P<repeated_punct>([.,;:?!'\[\]{}()“”‘’&%$¥—-])\2)"  # Same punctuation is used twice in a row
+        r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))|"  # Same punctuation is used twice in a row
+        r"(?P<no_closing_parenthesis>\([^)]*$)" # Match a parethesis not closed
     )
 
     for match in pattern.finditer(text):
@@ -76,7 +77,8 @@ def check_punctuation_patterns(text, summary):
             'straight_quotes': 'Straight quotes',
             'space_around_punct': 'Space before and after punctuation',
             'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
-            'repeated_punct': 'Same punctuation is used twice in a row'
+            'repeated_punct': 'Same punctuation is used twice in a row',
+            'no_closing_parenthesis': 'Missing closing parenthesis'
         }.get(error_type, 'Unknown error')
 
         punctuation_errors.add((error_char, error_description))
