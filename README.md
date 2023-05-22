@@ -1,6 +1,12 @@
 # Punctuation Error Highlighter
 
-This Python program detects and highlights punctuation errors in PDF files, such as full-width characters, ~double spaces after punctuation~, straight quotes, spaces around punctuation, space before closing quotation marks followed by a character, and repeated punctuation. It also generates an error summary in CSV format.
+This Python program detects and highlights punctuation errors in PDF files. It also generates an error summary in CSV format. It detects the following errors:
+- Full-width characters
+- ~Double spaces after punctuation~
+- Straight quotes
+- Spaces around punctuation
+- Space before closing quotation marks followed by a character
+- Repeated punctuation
 
 ## Dependencies
 
