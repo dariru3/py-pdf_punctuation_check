@@ -61,7 +61,7 @@ def check_full_width_chars(text, summary):
 def check_punctuation_patterns(text, summary):
     punctuation_errors = set()
     pattern = re.compile(
-        # r"(?P<double_space>(?<=\S)[.!?]\s{2}(?=\S))|"  # Double space after punctuation [removed for false-positives]
+        # r"(?P<double_space>(?<=\S)[.,;:!?]\s{2}(?=\S))|"  # Double space after punctuation [removed for false-positives]
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
         r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
