@@ -1,7 +1,7 @@
 from main import check_punctuation_patterns
 
 def testPunctuation():
-    test_sentence = "Hello??!!??"
+    test_sentence = "(Hello World! (Is it not great?"
     test_summary = []
     errors = check_punctuation_patterns(test_sentence, test_summary)
     print(errors)
