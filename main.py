@@ -22,7 +22,7 @@ def highlight_punctuation_errors(input_file:str, pages:list=None):
 
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
         get_positions(target_chars, text, page, page_highlights)
-        add_highlight_annot(page_highlights, page, comment_name)
+        add_highlight_annot(page_highlights, page, comment_name,error_summary)
 
     export_summary(error_summary)
     save_output_file(input_file, pdfIn)
@@ -94,15 +94,15 @@ def check_punctuation_errors(text, summary):
 
     return error_characters
 
-def update_summary(summary:list, char, description):
+def update_summary(summary:list, char, description, count=1):
     found = False
     for entry in summary:
-        if entry['char'] == char:
-            entry['count'] += 1
+        if entry['char'] == char and entry['description'] == description:
+            entry['count'] += count
             found = True
             break
     if not found:
-        summary.append({'char': char, 'count': 1, 'description': description})
+        summary.append({'char': char, 'count': count, 'description': description})
 
 def get_positions(target_chars, text, page, page_highlights):
     for char, description in target_chars:
@@ -134,14 +134,15 @@ def is_valid_rect(rect):
     x1, y1, x2, y2 = rect
     return x1 < x2 and y1 < y2
 
-def add_highlight_annot(page_highlights:dict, page, comment_name):
-    # print(f"Page highlights: {page_highlights}")
+def add_highlight_annot(page_highlights:dict, page, comment_name, error_summary:list):
     for char, char_data in page_highlights.items():
         match_rects = char_data["matches"]
         description = char_data["description"]
         for rect in match_rects:
             # print("Rect:", rect)
             if not is_valid_rect(rect):
+                # print(f"Invalid rect for {char} ({description}) on {page.number+1}")
+                update_summary(error_summary, char, f"{description}, Invalid rect on page {page.number+1}! NOT highlighted!", count=1)
                 continue
             annot = page.add_highlight_annot(rect)
             info = annot.info
