@@ -7,6 +7,7 @@ This Python program detects and highlights punctuation errors in PDF files. It a
 - Spaces around punctuation
 - Space before closing quotation marks followed by a character
 - Repeated punctuation
+- Missing closing parenthesis
 
 ## Dependencies
 
