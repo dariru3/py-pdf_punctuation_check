@@ -129,12 +129,20 @@ def handle_matches(matches, char, description, page_highlights):
 def rects_are_equal(rect1, rect2, threshold=1e-6):
     return all([abs(rect1[i] - rect2[i]) < threshold for i in range(4)])
 
+def is_valid_rect(rect):
+    #Check if a rectangle is valid (x1 < x2 and y1 < y2).
+    x1, y1, x2, y2 = rect
+    return x1 < x2 and y1 < y2
+
 def add_highlight_annot(page_highlights:dict, page, comment_name):
     # print(f"Page highlights: {page_highlights}")
     for char, char_data in page_highlights.items():
         match_rects = char_data["matches"]
         description = char_data["description"]
         for rect in match_rects:
+            # print("Rect:", rect)
+            if not is_valid_rect(rect):
+                continue
             annot = page.add_highlight_annot(rect)
             info = annot.info
             info["title"] = comment_name
