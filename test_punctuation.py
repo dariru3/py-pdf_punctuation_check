@@ -5,6 +5,8 @@ def testPunctuation():
     Hello World!!
     It's me . Hi!
     Are you not entertained??
+    There should be a space after.But there is not.
+    There should be a space before(). But no.
     """
     test_summary = []
     errors = check_punctuation_patterns(test_sentence, test_summary)

@@ -18,6 +18,10 @@ def highlight_punctuation_errors(input_file:str, pages:list=None):
 
         # Get all the text in the page
         text = page.get_text("text")
+        # text = page.get_text("text", flags=fitz.TEXT_PRESERVE_WHITESPACE)
+        # text = page.get_text("text", flags=fitz.TEXT_INHIBIT_SPACES)
+
+
         target_chars = check_punctuation_errors(text, error_summary)
 
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
@@ -66,7 +70,9 @@ def check_punctuation_patterns(text, summary):
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
         r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
         r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))|"  # Same punctuation is used twice in a row
-        r"(?P<no_closing_parenthesis>\([^)]*$)" # Match a parethesis not closed
+        r"(?P<no_closing_parenthesis>\([^)]*$)" # Match a parenthesis not closed
+        # r"(?P<missing_space_before_punct>(?<=[a-zA-Z0-9])[\[{(“‘$¥£€](?=[a-zA-Z0-9]))|"  # Missing space before certain punctuation [highlight error?]
+        # r"(?P<missing_space_after_punct>(?<=[a-zA-Z])[.,;:?!\]})”%](?=[a-zA-Z]))"  # Missing space after certain punctuation [fix line above first]
     )
 
     for match in pattern.finditer(text):
@@ -78,7 +84,9 @@ def check_punctuation_patterns(text, summary):
             'space_around_punct': 'Space before and after punctuation',
             'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
             'repeated_punct': 'Same punctuation is used twice in a row',
-            'no_closing_parenthesis': 'Missing closing parenthesis'
+            'no_closing_parenthesis': 'Missing closing parenthesis',
+            'missing_space_before_punct': 'Missing space before punctuation',
+            'missing_space_after_punct': 'Missing space after punctuation'
         }.get(error_type, 'Unknown error')
 
         punctuation_errors.add((error_char, error_description))
