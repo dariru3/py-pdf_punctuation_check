@@ -3,8 +3,13 @@ import fitz
 import unicodedata, re
 from config import config
 
-def highlight_punctuation_errors(input_file:str, pages:list=None):
-    comment_name = "Punctuation Error Highlighter"
+def highlight_punctuation_errors(input_file:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
+    comment_name = "PunctChecker"
+    # convert skip_chars to a set for efficient membership testing
+    if skip_chars:
+        skip_chars = set(skip_chars)
+    else:
+        skip_chars = set()
     # create matches list for output summary
     error_summary = []
     # open pdf
@@ -22,7 +27,7 @@ def highlight_punctuation_errors(input_file:str, pages:list=None):
         # text = page.get_text("text", flags=fitz.TEXT_INHIBIT_SPACES)
 
 
-        target_chars = check_punctuation_errors(text, error_summary)
+        target_chars = check_punctuation_errors(text, error_summary, skip_chars, skip_japanese)
 
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
         get_positions(target_chars, text, page, page_highlights)
@@ -31,7 +36,7 @@ def highlight_punctuation_errors(input_file:str, pages:list=None):
     export_summary(error_summary)
     save_output_file(input_file, pdfIn)
 
-def check_full_width_chars(text, summary):
+def check_full_width_chars(text, summary, skip_chars, skip_japanese):
     full_width_chars = set()
     full_status = ['W', 'F', 'A']
     full_width_pattern = re.compile("[\uFF01-\uFF5E]+")
@@ -45,6 +50,13 @@ def check_full_width_chars(text, summary):
         '\u201D',  # Right double quotation mark (”)
         '\u2014',  # Em dash (—)
     }
+
+    # add skip_chars to excluded_chars
+    excluded_chars.update(skip_chars)
+    if skip_japanese:
+        excluded_chars.update(set(chr(i) for i in range(0x3040, 0x30A0)))  # Hiragana
+        excluded_chars.update(set(chr(i) for i in range(0x30A0, 0x3100)))  # Katakana
+        excluded_chars.update(set(chr(i) for i in range(0x4E00, 0x9FB0)))  # Kanji
 
     status_descriptions = {
         'W': 'Full-width: Wide',
@@ -94,8 +106,8 @@ def check_punctuation_patterns(text, summary):
 
     return punctuation_errors
 
-def check_punctuation_errors(text, summary):
-    errors = check_full_width_chars(text, summary) | check_punctuation_patterns(text, summary)
+def check_punctuation_errors(text, summary, skip_chars, skip_japanese):
+    errors = check_full_width_chars(text, summary, skip_chars, skip_japanese) | check_punctuation_patterns(text, summary)
     error_characters = []
     for error_char, error_description in errors:
         error_characters.append([error_char, error_description])
@@ -161,7 +173,7 @@ def add_highlight_annot(page_highlights:dict, page, comment_name, error_summary:
 
 def export_summary(error_summary:list):
     fieldnames = ['Character', 'Count', 'Description']
-    with open("error_summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
+    with open("test_files/error_summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
         for entry in error_summary:
@@ -177,4 +189,4 @@ def save_output_file(input_file, pdfIn):
     pdfIn.close()
 
 if __name__ == '__main__':
-    highlight_punctuation_errors(input_file=config["source_filename"])
+    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="•", skip_japanese=True)
