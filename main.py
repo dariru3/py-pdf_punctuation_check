@@ -78,18 +78,18 @@ def check_punctuation_patterns(text):
         r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))"  # Same punctuation is used twice in a row
     )
     error_description = {
-            'straight_quotes': 'Straight quotes',
-            'space_around_punct': 'Space before and after punctuation',
-            'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
-            'repeated_punct': 'Same punctuation is used twice in a row'
-        }
+        'straight_quotes': 'Straight quotes',
+        'space_around_punct': 'Space before and after punctuation',
+        'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
+        'repeated_punct': 'Same punctuation is used twice in a row'
+    }
 
     for match in error_patterns.finditer(text):
         error_type = match.lastgroup
         error_char = match.group()
-        error_description.get(error_type, 'Unknown error')
+        description = error_description.get(error_type, 'Unknown error')
 
-        punctuation_errors.add((error_char, error_description))
+        punctuation_errors.add((error_char, description))
 
     return punctuation_errors
 
