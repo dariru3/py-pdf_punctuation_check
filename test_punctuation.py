@@ -6,6 +6,7 @@ def testPunctuation():
     Are you not entertained??
     He said, “This needs a closing double quote.
     Do not forget to close (parenthesis!!
+    ¥13433,430532,32034.000 yen
     """
     test_summary = []
     check_punctuation_errors(test_sentences,test_summary)
