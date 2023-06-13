@@ -75,13 +75,20 @@ def check_punctuation_patterns(text):
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
         r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
-        r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))"  # Same punctuation is used twice in a row
+        r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))|"  # Same punctuation is used twice in a row
+        r"(?P<yen_symbol_and_word>¥[\w.,]+\syen)|" # ¥ and yen used at the same time
+        r"(?P<incorrect_year_abbr>‘\d{2})|"  # Incorrect year abbreviation
+        r"(?P<apostrophe_in_decade>\b\d{2,4}'s\b)"  # Apostrophe in decade
     )
+    
     error_descriptions = {
         'straight_quotes': 'Straight quotes',
         'space_around_punct': 'Space before and after punctuation',
         'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
-        'repeated_punct': 'Same punctuation is used twice in a row'
+        'repeated_punct': 'Same punctuation is used twice in a row',
+        'yen_symbol_and_word': '¥ and yen used at the same time',
+        'incorrect_year_abbr': 'Incorrect apostrophe for year abbreviation',
+        'apostrophe_in_decade': 'Apostrophe in decade'
     }
 
     for error_match in error_patterns.finditer(text):
