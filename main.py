@@ -4,29 +4,19 @@ import unicodedata, re
 from config import config
 
 def highlight_punctuation_errors(input_file:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
-    comment_name = "PunctChecker"
-    # convert skip_chars to a set for efficient membership testing
-    if skip_chars:
-        skip_chars = set(skip_chars)
-    else:
-        skip_chars = set()
-    # create matches list for output summary
-    error_summary = []
-    # open pdf
-    pdfIn = fitz.open(input_file)
+    comment_name = "PunctChecker" # set PDF comment author
+    skip_chars = set(skip_chars) if skip_chars else set() # convert skip_chars to a set for efficient membership testing
+    error_summary = [] # create error matches list for output summary
+
+    pdfIn = fitz.open(input_file) # open pdf
     # Iterate throughout pdf pages
     for pg, page in enumerate(pdfIn):
         pageID = pg+1
-        # If required to look in specific pages
-        if pages and pageID not in pages:
+        if pages and pageID not in pages: # If required to look in specific pages
               continue
 
-        # Get all the text in the page
-        text = page.get_text("text")
-        # text = page.get_text("text", flags=fitz.TEXT_PRESERVE_WHITESPACE)
-        # text = page.get_text("text", flags=fitz.TEXT_INHIBIT_SPACES)
-
-
+        text = page.get_text("text") # Get all the text in the page
+        
         target_chars = check_punctuation_errors(text, error_summary, skip_chars, skip_japanese)
 
         page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
@@ -41,22 +31,7 @@ def check_full_width_chars(text, skip_chars, skip_japanese):
     full_status = ['W', 'F', 'A']
     full_width_pattern = re.compile("[\uFF01-\uFF5E]+")
 
-    excluded_chars = {
-        '\u0022',  # Half-width double quote mark (")
-        '\u0027',  # Half-width single quote mark/apostrophe (')
-        '\u2018',  # Left single quotation mark (‘)
-        '\u2019',  # Right single quotation mark (’)
-        '\u201C',  # Left double quotation mark (“)
-        '\u201D',  # Right double quotation mark (”)
-        '\u2014',  # Em dash (—)
-    }
-
-    # add skip_chars to excluded_chars
-    excluded_chars.update(skip_chars)
-    if skip_japanese:
-        excluded_chars.update(set(chr(i) for i in range(0x3040, 0x30A0)))  # Hiragana
-        excluded_chars.update(set(chr(i) for i in range(0x30A0, 0x3100)))  # Katakana
-        excluded_chars.update(set(chr(i) for i in range(0x4E00, 0x9FB0)))  # Kanji
+    excluded_chars = check_excluded_chars(skip_chars, skip_japanese)
 
     status_descriptions = {
         'W': 'Full-width: Wide',
@@ -73,24 +48,46 @@ def check_full_width_chars(text, skip_chars, skip_japanese):
 
     return full_width_chars
 
+def check_excluded_chars(skip_chars:set, skip_japanese:bool=False):
+
+    excluded_chars = {
+        '\u0022',  # Half-width double quote mark (")
+        '\u0027',  # Half-width single quote mark/apostrophe (')
+        '\u2018',  # Left single quotation mark (‘)
+        '\u2019',  # Right single quotation mark (’)
+        '\u201C',  # Left double quotation mark (“)
+        '\u201D',  # Right double quotation mark (”)
+        '\u2014',  # Em dash (—)
+    }
+
+    # add to excluded_chars, if necessary
+    excluded_chars.update(skip_chars)
+    if skip_japanese:
+        excluded_chars.update(set(chr(i) for i in range(0x3040, 0x30A0)))  # Hiragana
+        excluded_chars.update(set(chr(i) for i in range(0x30A0, 0x3100)))  # Katakana
+        excluded_chars.update(set(chr(i) for i in range(0x4E00, 0x9FB0)))  # Kanji
+
+    return excluded_chars
+
 def check_punctuation_patterns(text):
     punctuation_errors = set()
-    pattern = re.compile(
+    error_patterns = re.compile(
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
         r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
         r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))"  # Same punctuation is used twice in a row
     )
-
-    for match in pattern.finditer(text):
-        error_type = match.lastgroup
-        error_char = match.group()
-        error_description = {
+    error_description = {
             'straight_quotes': 'Straight quotes',
             'space_around_punct': 'Space before and after punctuation',
             'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
             'repeated_punct': 'Same punctuation is used twice in a row'
-        }.get(error_type, 'Unknown error')
+        }
+
+    for match in error_patterns.finditer(text):
+        error_type = match.lastgroup
+        error_char = match.group()
+        error_description.get(error_type, 'Unknown error')
 
         punctuation_errors.add((error_char, error_description))
 
