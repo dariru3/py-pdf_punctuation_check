@@ -112,7 +112,7 @@ def check_incomplete_pairs(text):
 
     return errors
 
-def check_punctuation_errors(text, summary, skip_chars, skip_japanese):
+def check_punctuation_errors(text, summary, skip_chars="", skip_japanese=False):
     errors = check_full_width_chars(text, skip_chars, skip_japanese) | check_punctuation_patterns(text) | check_incomplete_pairs(text)
     error_characters = []
     for error_char, error_description in errors:
