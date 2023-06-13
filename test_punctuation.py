@@ -1,16 +1,15 @@
 from main import check_punctuation_patterns
 
 def testPunctuation():
-    test_sentence = """
-    Hello World!!
+    test_sentences = """
     It's me . Hi!
     Are you not entertained??
-    There should be a space after.But there is not.
-    There should be a space before(). But no.
+    He said, “This needs a closing double quote.
+    Do not forget to close (parenthesis!!
+    And ‘single quotes too.
     """
     test_summary = []
-    errors = check_punctuation_patterns(test_sentence, test_summary)
-    # print(errors)
+    errors = check_punctuation_patterns(test_sentences, test_summary)
     print(f"errors: {test_summary}")
 
 if __name__ == '__main__':

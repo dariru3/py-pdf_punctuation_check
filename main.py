@@ -36,7 +36,7 @@ def highlight_punctuation_errors(input_file:str, pages:list=None, skip_chars:str
     export_summary(error_summary)
     save_output_file(input_file, pdfIn)
 
-def check_full_width_chars(text, summary, skip_chars, skip_japanese):
+def check_full_width_chars(text, skip_chars, skip_japanese):
     full_width_chars = set()
     full_status = ['W', 'F', 'A']
     full_width_pattern = re.compile("[\uFF01-\uFF5E]+")
@@ -70,47 +70,57 @@ def check_full_width_chars(text, summary, skip_chars, skip_japanese):
             if status in full_status or full_width_pattern.search(char):
                 description = status_descriptions.get(status, 'Unknown status')
                 full_width_chars.add((char, description))
-                update_summary(summary, char, description)
 
     return full_width_chars
 
-def check_punctuation_patterns(text, summary):
+def check_punctuation_patterns(text):
     punctuation_errors = set()
     pattern = re.compile(
-        # r"(?P<double_space>(?<=\S)[.,;:!?]\s{2}(?=\S))|"  # Double space after punctuation [removed for false-positives]
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
         r"(?P<space_before_closing_quote>\s[’”](?=[a-zA-Z0-9]))|"  # Space before closing quotation mark followed by a character
-        r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))|"  # Same punctuation is used twice in a row
-        r"(?P<no_closing_parenthesis>\([^)]*$)" # Match a parenthesis not closed
-        # r"(?P<missing_space_before_punct>(?<=[a-zA-Z0-9])[\[{(“‘$¥£€](?=[a-zA-Z0-9]))|"  # Missing space before certain punctuation [highlight error?]
-        # r"(?P<missing_space_after_punct>(?<=[a-zA-Z])[.,;:?!\]})”%](?=[a-zA-Z]))"  # Missing space after certain punctuation [fix line above first]
+        r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))"  # Same punctuation is used twice in a row
     )
 
     for match in pattern.finditer(text):
         error_type = match.lastgroup
         error_char = match.group()
         error_description = {
-            'double_space': 'Double space after punctuation',
             'straight_quotes': 'Straight quotes',
             'space_around_punct': 'Space before and after punctuation',
             'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
-            'repeated_punct': 'Same punctuation is used twice in a row',
-            'no_closing_parenthesis': 'Missing closing parenthesis',
-            'missing_space_before_punct': 'Missing space before punctuation',
-            'missing_space_after_punct': 'Missing space after punctuation'
+            'repeated_punct': 'Same punctuation is used twice in a row'
         }.get(error_type, 'Unknown error')
 
         punctuation_errors.add((error_char, error_description))
-        update_summary(summary, error_char, error_description)
 
     return punctuation_errors
 
+def check_incomplete_pairs(text):
+    # Define punctuation pairs
+    punctuation_pairs = {
+        '(': ')',
+        '[': ']',
+        '{': '}',
+        '“': '”',
+        # '‘': '’', # gets thrown off by apostrophes
+    }
+
+    errors = set()
+
+    # Check for each pair
+    for start_punct, end_punct in punctuation_pairs.items():
+        if text.count(start_punct) != text.count(end_punct):
+            errors.add((start_punct, 'Mismatched pair'))
+
+    return errors
+
 def check_punctuation_errors(text, summary, skip_chars, skip_japanese):
-    errors = check_full_width_chars(text, summary, skip_chars, skip_japanese) | check_punctuation_patterns(text, summary)
+    errors = check_full_width_chars(text, skip_chars, skip_japanese) | check_punctuation_patterns(text) | check_incomplete_pairs(text)
     error_characters = []
     for error_char, error_description in errors:
         error_characters.append([error_char, error_description])
+        update_summary(summary, error_char, error_description)
 
     return error_characters
 
@@ -189,4 +199,4 @@ def save_output_file(input_file, pdfIn):
     pdfIn.close()
 
 if __name__ == '__main__':
-    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="•", skip_japanese=True)
+    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="•, ●", skip_japanese=True)
