@@ -103,6 +103,7 @@ def check_punctuation_patterns(text):
     return punctuation_errors
 
 def check_incomplete_pairs(text):
+    # Define punctuation pairs
     punctuation_pairs = {
         '(': ')',
         '[': ']',
@@ -110,10 +111,8 @@ def check_incomplete_pairs(text):
         '“': '”',
         # '‘': '’', # gets thrown off by apostrophes
     }
-    reverse_punctuation_pairs = {v: k for k, v in punctuation_pairs.items()} # For easy lookup of start punctuation
 
-    stack = []
-    errors = []
+    errors = set()
 
     for i, char in enumerate(text):
         if char in punctuation_pairs:  # this is a start punctuation
