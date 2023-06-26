@@ -70,7 +70,7 @@ def check_excluded_chars(skip_chars:set, skip_japanese:bool=False):
     return excluded_chars
 
 def check_punctuation_patterns(text):
-    punctuation_errors = set()
+    punctuation_errors = []
     error_patterns = re.compile(
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
@@ -96,7 +96,7 @@ def check_punctuation_patterns(text):
         error_char = error_match.group()
         description = error_descriptions.get(error_type, 'Unknown error')
 
-        punctuation_errors.add((error_char, description))
+        punctuation_errors.append((error_char, description, error_match.start(), error_match.end()))
 
     return punctuation_errors
 
@@ -120,13 +120,11 @@ def check_incomplete_pairs(text):
     return errors
 
 def check_punctuation_errors(text, summary, skip_chars="", skip_japanese=False):
-    errors = check_full_width_chars(text, skip_chars, skip_japanese) | check_punctuation_patterns(text) | check_incomplete_pairs(text)
-    error_characters = []
-    for error_char, error_description in errors:
-        error_characters.append([error_char, error_description])
+    errors = check_punctuation_patterns(text)
+    for error_match, error_description, start, end in errors:
+        error_char = error_match
         update_summary(summary, error_char, error_description)
-
-    return error_characters
+    return errors
 
 def update_summary(summary:list, char, description, count=1):
     found = False
@@ -139,17 +137,10 @@ def update_summary(summary:list, char, description, count=1):
         summary.append({'char': char, 'count': count, 'description': description})
 
 def get_positions(target_chars, text, page, page_highlights):
-    for char, description in target_chars:
-        start_idx = 0
-        while True:
-            start_idx = text.find(char, start_idx)
-            if start_idx == -1:
-                break
-            end_idx = start_idx + len(char)
-            matches = page.search_for(text[start_idx:end_idx])
-            if matches:
-                handle_matches(matches, char, description, page_highlights)
-            start_idx += 1
+    for char, description, start, end in target_chars:
+        matches = page.search_for(text[start:end])
+        if matches:
+            handle_matches(matches, char, description, page_highlights)
 
 def handle_matches(matches, char, description, page_highlights):
     for match in matches:
