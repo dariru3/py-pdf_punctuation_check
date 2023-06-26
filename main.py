@@ -27,7 +27,7 @@ def highlight_punctuation_errors(input_file:str, pages:list=None, skip_chars:str
     save_output_file(input_file, pdfIn)
 
 def check_full_width_chars(text, skip_chars, skip_japanese):
-    full_width_chars = set()
+    full_width_chars = []
     full_status = ['W', 'F', 'A']
     full_width_pattern = re.compile("[\uFF01-\uFF5E]+")
 
@@ -39,12 +39,14 @@ def check_full_width_chars(text, skip_chars, skip_japanese):
         'A': 'Full-width: Ambiguous'
     }
 
-    for char in text:
-        if char not in excluded_chars:
-            status = unicodedata.east_asian_width(char)
-            if status in full_status or full_width_pattern.search(char):
-                description = status_descriptions.get(status, 'Unknown status')
-                full_width_chars.add((char, description))
+    for match in full_width_pattern.finditer(text):
+        matched_chars = match.group()
+        for char_idx, char in enumerate(matched_chars):
+            if char not in excluded_chars:
+                status = unicodedata.east_asian_width(char)
+                if status in full_status:
+                    description = status_descriptions.get(status, 'Unknown status')
+                    full_width_chars.append((char, description, match.start()+char_idx, match.start()+char_idx+1))
 
     return full_width_chars
 
@@ -121,6 +123,7 @@ def check_incomplete_pairs(text):
 
 def check_punctuation_errors(text, summary, skip_chars="", skip_japanese=False):
     errors = check_punctuation_patterns(text)
+    errors += check_full_width_chars(text, skip_chars, skip_japanese)
     for error_match, error_description, start, end in errors:
         error_char = error_match
         update_summary(summary, error_char, error_description)
