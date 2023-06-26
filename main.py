@@ -111,8 +111,11 @@ def check_incomplete_pairs(text):
         '“': '”',
         # '‘': '’', # gets thrown off by apostrophes
     }
+    
+    reverse_punctuation_pairs = {v: k for k, v in punctuation_pairs.items()} # For easy lookup of start punctuation
 
-    errors = set()
+    stack = []
+    errors = []
 
     for i, char in enumerate(text):
         if char in punctuation_pairs:  # this is a start punctuation
@@ -132,6 +135,8 @@ def check_incomplete_pairs(text):
         start_punct, pos = stack.pop()
         errors.append((start_punct, 'Mismatched pair', pos, pos + 1))
     
+    if errors != []:
+        print(errors)
     return errors
 
 def check_punctuation_errors(text, summary, skip_chars="", skip_japanese=False):
