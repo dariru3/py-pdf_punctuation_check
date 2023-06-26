@@ -133,14 +133,12 @@ def check_incomplete_pairs(text):
         start_punct, pos = stack.pop()
         errors.append((start_punct, 'Mismatched pair', pos, pos + 1))
     
-    if errors != []:
-        print(errors)
     return errors
 
 def check_punctuation_errors(text, summary, skip_chars="", skip_japanese=False):
     errors = check_punctuation_patterns(text)
     errors += check_full_width_chars(text, skip_chars, skip_japanese)
-    errors += check_incomplete_pairs(text)
+    # errors += check_incomplete_pairs(text)
     for error_match, error_description, start, end in errors:
         error_char = error_match
         update_summary(summary, error_char, error_description)
