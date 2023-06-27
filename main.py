@@ -97,11 +97,9 @@ def check_punctuation_patterns(text):
         description = error_descriptions.get(error_type, 'Unknown error')
 
         punctuation_errors.add((error_char, description))
-
     return punctuation_errors
 
 def check_incomplete_pairs(text):
-    # Define punctuation pairs
     punctuation_pairs = {
         '(': ')',
         '[': ']',
@@ -110,22 +108,41 @@ def check_incomplete_pairs(text):
         # '‘': '’', # gets thrown off by apostrophes
     }
 
+    reverse_punctuation_pairs = {v: k for k, v in punctuation_pairs.items()}
+
+    stack = []
     errors = set()
+    max_string_length = 4  # Maximum characters to return including the punctuation
 
-    # Check for each pair
-    for start_punct, end_punct in punctuation_pairs.items():
-        if text.count(start_punct) != text.count(end_punct):
-            errors.add((start_punct, 'Mismatched pair'))
+    for i, char in enumerate(text):
+        if char in punctuation_pairs:
+            stack.append((char, i))
+        elif char in reverse_punctuation_pairs:
+            if stack:
+                start_punct, _ = stack[-1]
+                if start_punct == reverse_punctuation_pairs[char]:
+                    stack.pop()
+                    continue
+            # Extract the string after the punctuation, up to max_string_length characters
+            end_pos = min(i+1+max_string_length, len(text))
+            errors.add((text[i: end_pos], 'Mismatched pair'))
+        else:
+            continue
 
+    while stack:
+        start_punct, pos = stack.pop()
+        # Extract the string after the punctuation, up to max_string_length characters
+        end_pos = min(pos+max_string_length, len(text))
+        errors.add((text[pos: end_pos], 'Mismatched pair'))
+    
     return errors
 
-def check_punctuation_errors(text, summary, skip_chars="", skip_japanese=False):
+def check_punctuation_errors(text, summary, skip_chars, skip_japanese=False):
     errors = check_full_width_chars(text, skip_chars, skip_japanese) | check_punctuation_patterns(text) | check_incomplete_pairs(text)
     error_characters = []
     for error_char, error_description in errors:
         error_characters.append([error_char, error_description])
         update_summary(summary, error_char, error_description)
-
     return error_characters
 
 def update_summary(summary:list, char, description, count=1):
@@ -203,4 +220,4 @@ def save_output_file(input_file, pdfIn):
     pdfIn.close()
 
 if __name__ == '__main__':
-    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="•", skip_japanese=True)
+    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="", skip_japanese=False)
