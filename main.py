@@ -220,4 +220,4 @@ def save_output_file(input_file, pdfIn):
     pdfIn.close()
 
 if __name__ == '__main__':
-    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="", skip_japanese=True)
+    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="", skip_japanese=False)
