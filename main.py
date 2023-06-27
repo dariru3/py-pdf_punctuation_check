@@ -103,7 +103,6 @@ def check_punctuation_patterns(text):
     return punctuation_errors
 
 def check_incomplete_pairs(text):
-    # Define punctuation pairs
     punctuation_pairs = {
         '(': ')',
         '[': ']',
@@ -111,38 +110,40 @@ def check_incomplete_pairs(text):
         '“': '”',
         # '‘': '’', # gets thrown off by apostrophes
     }
-    
-    reverse_punctuation_pairs = {v: k for k, v in punctuation_pairs.items()} # For easy lookup of start punctuation
+
+    reverse_punctuation_pairs = {v: k for k, v in punctuation_pairs.items()}
 
     stack = []
     errors = []
+    max_string_length = 4  # Maximum characters to return including the punctuation
 
     for i, char in enumerate(text):
-        if char in punctuation_pairs:  # this is a start punctuation
-            stack.append((char, i)) # push it to the stack
-        elif char in reverse_punctuation_pairs:  # this is an end punctuation
-            if stack:  # if the stack is not empty
-                start_punct, _ = stack[-1]  # peek the top element of the stack
-                if start_punct == reverse_punctuation_pairs[char]:  # if the start punctuation matches with the end punctuation
-                    stack.pop()  # remove it from the stack
-                    continue  # this is a matched pair, so we move to the next character
-            errors.append((char, 'Mismatched pair', i, i + 1))
+        if char in punctuation_pairs:
+            stack.append((char, i))
+        elif char in reverse_punctuation_pairs:
+            if stack:
+                start_punct, start_pos = stack[-1]
+                if start_punct == reverse_punctuation_pairs[char]:
+                    stack.pop()
+                    continue
+            # Extract the string after the punctuation, up to max_string_length characters
+            end_pos = min(i+1+max_string_length, len(text))
+            errors.append((text[i: end_pos], 'Mismatched pair', i, end_pos))
         else:
-            continue  # this is neither a start punctuation nor an end punctuation
+            continue
 
-    # If there are still elements in the stack, they are start punctuations without a matching end punctuation
     while stack:
         start_punct, pos = stack.pop()
-        errors.append((start_punct, 'Mismatched pair', pos, pos + 1))
+        # Extract the string after the punctuation, up to max_string_length characters
+        end_pos = min(pos+max_string_length, len(text))
+        errors.append((text[pos: end_pos], 'Mismatched pair', pos, end_pos))
     
-    if errors != []:
-        print(errors)
     return errors
 
 def check_punctuation_errors(text, summary, skip_chars="", skip_japanese=False):
     errors = check_punctuation_patterns(text)
     errors += check_full_width_chars(text, skip_chars, skip_japanese)
-    # errors += check_incomplete_pairs(text)
+    errors += check_incomplete_pairs(text)
     for error_match, error_description, start, end in errors:
         error_char = error_match
         update_summary(summary, error_char, error_description)
