@@ -27,7 +27,7 @@ def highlight_punctuation_errors(input_file:str, pages:list=None, skip_chars:str
     save_output_file(input_file, pdfIn)
 
 def check_full_width_chars(text, skip_chars, skip_japanese):
-    full_width_chars = []
+    full_width_chars = set()
     full_status = ['W', 'F', 'A']
     full_width_pattern = re.compile("[\uFF01-\uFF5E]+")
 
@@ -39,14 +39,12 @@ def check_full_width_chars(text, skip_chars, skip_japanese):
         'A': 'Full-width: Ambiguous'
     }
 
-    for match in full_width_pattern.finditer(text):
-        matched_chars = match.group()
-        for char_idx, char in enumerate(matched_chars):
-            if char not in excluded_chars:
-                status = unicodedata.east_asian_width(char)
-                if status in full_status:
-                    description = status_descriptions.get(status, 'Unknown status')
-                    full_width_chars.append((char, description, match.start()+char_idx, match.start()+char_idx+1))
+    for char in text:
+        if char not in excluded_chars:
+            status = unicodedata.east_asian_width(char)
+            if status in full_status or full_width_pattern.search(char):
+                description = status_descriptions.get(status, 'Unknown status')
+                full_width_chars.add((char, description))
 
     return full_width_chars
 
@@ -72,7 +70,7 @@ def check_excluded_chars(skip_chars:set, skip_japanese:bool=False):
     return excluded_chars
 
 def check_punctuation_patterns(text):
-    punctuation_errors = []
+    punctuation_errors = set()
     error_patterns = re.compile(
         r"(?P<straight_quotes>['\"])|"  # Straight quotes
         r"(?P<space_around_punct>\s[.,;:?!'\[\]{}()“”‘’%$¥—-]\s)|"  # Space before and after punctuation
@@ -98,8 +96,7 @@ def check_punctuation_patterns(text):
         error_char = error_match.group()
         description = error_descriptions.get(error_type, 'Unknown error')
 
-        punctuation_errors.append((error_char, description, error_match.start(), error_match.end()))
-
+        punctuation_errors.add((error_char, description))
     return punctuation_errors
 
 def check_incomplete_pairs(text):
@@ -114,7 +111,7 @@ def check_incomplete_pairs(text):
     reverse_punctuation_pairs = {v: k for k, v in punctuation_pairs.items()}
 
     stack = []
-    errors = []
+    errors = set()
     max_string_length = 4  # Maximum characters to return including the punctuation
 
     for i, char in enumerate(text):
@@ -122,13 +119,13 @@ def check_incomplete_pairs(text):
             stack.append((char, i))
         elif char in reverse_punctuation_pairs:
             if stack:
-                start_punct, start_pos = stack[-1]
+                start_punct, _ = stack[-1]
                 if start_punct == reverse_punctuation_pairs[char]:
                     stack.pop()
                     continue
             # Extract the string after the punctuation, up to max_string_length characters
             end_pos = min(i+1+max_string_length, len(text))
-            errors.append((text[i: end_pos], 'Mismatched pair', i, end_pos))
+            errors.add((text[i: end_pos], 'Mismatched pair'))
         else:
             continue
 
@@ -136,18 +133,17 @@ def check_incomplete_pairs(text):
         start_punct, pos = stack.pop()
         # Extract the string after the punctuation, up to max_string_length characters
         end_pos = min(pos+max_string_length, len(text))
-        errors.append((text[pos: end_pos], 'Mismatched pair', pos, end_pos))
+        errors.add((text[pos: end_pos], 'Mismatched pair'))
     
     return errors
 
 def check_punctuation_errors(text, summary, skip_chars, skip_japanese=False):
-    errors = check_punctuation_patterns(text)
-    errors += check_full_width_chars(text, skip_chars, skip_japanese)
-    errors += check_incomplete_pairs(text)
-    for error_match, error_description, start, end in errors:
-        error_char = error_match
+    errors = check_full_width_chars(text, skip_chars, skip_japanese) | check_punctuation_patterns(text) | check_incomplete_pairs(text)
+    error_characters = []
+    for error_char, error_description in errors:
+        error_characters.append([error_char, error_description])
         update_summary(summary, error_char, error_description)
-    return errors
+    return error_characters
 
 def update_summary(summary:list, char, description, count=1):
     found = False
@@ -160,10 +156,17 @@ def update_summary(summary:list, char, description, count=1):
         summary.append({'char': char, 'count': count, 'description': description})
 
 def get_positions(target_chars, text, page, page_highlights):
-    for char, description, start, end in target_chars:
-        matches = page.search_for(text[start:end])
-        if matches:
-            handle_matches(matches, char, description, page_highlights)
+    for char, description in target_chars:
+        start_idx = 0
+        while True:
+            start_idx = text.find(char, start_idx)
+            if start_idx == -1:
+                break
+            end_idx = start_idx + len(char)
+            matches = page.search_for(text[start_idx:end_idx])
+            if matches:
+                handle_matches(matches, char, description, page_highlights)
+            start_idx += 1
 
 def handle_matches(matches, char, description, page_highlights):
     for match in matches:
@@ -217,4 +220,4 @@ def save_output_file(input_file, pdfIn):
     pdfIn.close()
 
 if __name__ == '__main__':
-    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="", skip_japanese=False)
+    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="", skip_japanese=True)
