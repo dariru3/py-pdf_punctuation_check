@@ -3,28 +3,24 @@ import fitz
 import unicodedata, re
 from config import config
 
-def highlight_punctuation_errors(input_file:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
-    comment_name = "PunctChecker" # set PDF comment author
-    skip_chars = set(skip_chars) if skip_chars else set() # convert skip_chars to a set for efficient membership testing
-    error_summary = [] # create error matches list for output summary
+def highlight_punctuation_errors(input_file:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
+    comment_name = "PunctChecker"
+    skip_chars = set(skip_chars) if skip_chars else set()
+    error_summary = []
 
-    pdfIn = fitz.open(input_file) # open pdf
-    # Iterate throughout pdf pages
-    for pg, page in enumerate(pdfIn):
-        pageID = pg+1
-        if pages and pageID not in pages: # If required to look in specific pages
+    input_pdf = fitz.open(input_file)
+    for page_num, page in enumerate(input_pdf):
+        page_num +=1
+        if pages and page_num not in pages:
               continue
 
-        text = page.get_text("text") # Get all the text in the page
-        
+        text = page.get_text("text")
         target_chars = check_punctuation_errors(text, error_summary, skip_chars, skip_japanese)
 
-        page_highlights = {}  # Initialize a dictionary to store match rectangles for each character
-        get_positions(target_chars, text, page, page_highlights)
-        add_highlight_annot(page_highlights, page, comment_name,error_summary)
+        highlight_errors(target_chars, text, page, comment_name, error_summary)
 
-    export_summary(error_summary)
-    save_output_file(input_file, pdfIn)
+    export_summary(error_summary, summary_filename)
+    save_output_file(input_file, input_pdf, output_filename_end)
 
 def check_full_width_chars(text, skip_chars, skip_japanese):
     full_width_chars = set()
@@ -104,11 +100,10 @@ def check_incomplete_pairs(text):
         '(': ')',
         '[': ']',
         '{': '}',
-        '“': '”',
-        # '‘': '’', # gets thrown off by apostrophes
+        '“': '”'
     }
 
-    reverse_punctuation_pairs = {v: k for k, v in punctuation_pairs.items()}
+    reverse_punctuation_pairs = {value: key for key, value in punctuation_pairs.items()}
 
     stack = []
     errors = set()
@@ -180,19 +175,12 @@ def handle_matches(matches, char, description, page_highlights):
 def rects_are_equal(rect1, rect2, threshold=1e-6):
     return all([abs(rect1[i] - rect2[i]) < threshold for i in range(4)])
 
-def rect_is_valid(rect):
-    #Check if a rectangle is valid (x1 < x2 and y1 < y2).
-    x1, y1, x2, y2 = rect
-    return x1 < x2 and y1 < y2
-
-def add_highlight_annot(page_highlights:dict, page, comment_name, error_summary:list):
+def add_highlights(page_highlights:dict, page, comment_name, error_summary:list):
     for char, char_data in page_highlights.items():
         match_rects = char_data["matches"]
         description = char_data["description"]
         for rect in match_rects:
-            # print("Rect:", rect)
             if not rect_is_valid(rect):
-                # print(f"Invalid rect for {char} ({description}) on {page.number+1}")
                 update_summary(error_summary, char, f"{description}, Invalid rect on page {page.number+1}! NOT highlighted!", count=1)
                 continue
             annot = page.add_highlight_annot(rect)
@@ -202,9 +190,19 @@ def add_highlight_annot(page_highlights:dict, page, comment_name, error_summary:
             annot.set_info(info)
             annot.update()
 
-def export_summary(error_summary:list):
+def rect_is_valid(rect):
+    #Check if a rectangle is valid (x1 < x2 and y1 < y2).
+    x1, y1, x2, y2 = rect
+    return x1 < x2 and y1 < y2
+
+def highlight_errors(target_char, text, page, comment_name, error_summary):
+    page_highlights = {}
+    get_positions(target_char, text, page, page_highlights)
+    add_highlights(page_highlights, page, comment_name, error_summary)
+
+def export_summary(error_summary:list, summary_filename):
     fieldnames = ['Character', 'Count', 'Description']
-    with open("test_files/error_summary.csv", mode='w', newline='', encoding='utf-8') as csv_file:
+    with open(f"test_files/{summary_filename}.csv", mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
         for entry in error_summary:
@@ -214,10 +212,13 @@ def export_summary(error_summary:list):
                 fieldnames[2]: entry['description']
             })
 
-def save_output_file(input_file, pdfIn):
-    output_file = input_file.split(".")[0] + " punctuation_errors.pdf"
-    pdfIn.save(output_file, garbage=3, deflate=True)
-    pdfIn.close()
+def save_output_file(input_file, input_pdf, output_filename_end):
+    output_file_name = input_file.split(".")[0] + f" {output_filename_end}.pdf"
+    input_pdf.save(output_file_name, garbage=3, deflate=True)
+    input_pdf.close()
 
 if __name__ == '__main__':
-    highlight_punctuation_errors(input_file=config["source_filename"], skip_chars="", skip_japanese=False)
+    source_file = config["source_filename"]
+    output_filename_end = "punct_checker"
+    summary_filename = "error_summary"
+    highlight_punctuation_errors(source_file, output_filename_end, summary_filename, skip_chars="", skip_japanese=False)
