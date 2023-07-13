@@ -169,6 +169,7 @@ def handle_matches(matches, char, description, page_highlights):
             page_highlights[char] = {"matches": [match], "description": description}
         else:
             # Check if the match rectangle is not already in the list
+            print(char, description, match, len(page_highlights[char]))
             if not any([rects_are_equal(match, rect, threshold=1) for rect in page_highlights[char]["matches"]]):
                 page_highlights[char]["matches"].append(match)
 
@@ -221,4 +222,4 @@ if __name__ == '__main__':
     source_file = config["source_filename"]
     output_filename_end = "punct_checker"
     summary_filename = "error_summary"
-    highlight_punctuation_errors(source_file, output_filename_end, summary_filename, skip_chars="", skip_japanese=False)
+    highlight_punctuation_errors(source_file, output_filename_end, summary_filename, skip_chars="•", skip_japanese=False)
