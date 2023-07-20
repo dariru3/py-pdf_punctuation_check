@@ -1,6 +1,7 @@
 import csv
 import fitz
 import unicodedata, re
+import os
 from config import config
 
 def highlight_punctuation_errors(input_file:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
@@ -218,8 +219,14 @@ def save_output_file(input_file, input_pdf, output_filename_end):
     input_pdf.save(output_file_name, garbage=3, deflate=True)
     input_pdf.close()
 
+def process_directory(dir_name:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
+    for file_name in os.listdir(dir_name):
+        if file_name.endswith(".pdf"):
+            full_path = os.path.join(dir_name, file_name)
+            highlight_punctuation_errors(full_path, output_filename_end, summary_filename, pages, skip_chars,skip_japanese)
+
 if __name__ == '__main__':
-    source_file = config["source_filename"]
+    dir_name = config["source_folder"]
     output_filename_end = "punct_checker"
     summary_filename = "error_summary"
-    highlight_punctuation_errors(source_file, output_filename_end, summary_filename, skip_chars="•", skip_japanese=False)
+    process_directory(dir_name, output_filename_end, summary_filename, skip_chars="", skip_japanese=False)
