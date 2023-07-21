@@ -30,16 +30,16 @@ def check_full_width_chars(text, skip_chars, skip_japanese):
     excluded_chars = check_excluded_chars(skip_chars, skip_japanese)
 
     status_descriptions = {
-        'W': 'Full-width: Wide',
-        'F': 'Full-width: Full-width',
-        'A': 'Full-width: Ambiguous'
+        'W': '全角を半角に', # Full-width: Wide
+        'F': '半角に', # Full-width: Full-width
+        'A': '半角か確認' # Full-width: Ambiguous
     }
 
     for char in text:
         if char not in excluded_chars:
             status = unicodedata.east_asian_width(char)
             if status in full_status or full_width_pattern.search(char):
-                description = status_descriptions.get(status, 'Unknown status')
+                description = status_descriptions.get(status, 'エラー不明')
                 full_width_chars.add((char, description))
 
     return full_width_chars
@@ -78,19 +78,19 @@ def check_punctuation_patterns(text):
     )
     
     error_descriptions = {
-        'straight_quotes': 'Straight quotes',
-        'space_around_punct': 'Space before and after punctuation',
-        'space_before_closing_quote': 'Space before closing quotation mark followed by a character',
-        'repeated_punct': 'Same punctuation is used twice in a row',
-        'yen_symbol_and_word': '¥ and yen used at the same time',
-        'incorrect_year_abbr': 'Incorrect apostrophe for year abbreviation',
-        'apostrophe_in_decade': 'Apostrophe in decade'
+        'straight_quotes': 'オタマジャクシ型に',
+        'space_around_punct': '記号の前後に半角スペース',
+        'space_before_closing_quote': '開始のクォーテーションマークに変更',
+        'repeated_punct': 'マーク重複',
+        'yen_symbol_and_word': '¥ かyen か選択',
+        'incorrect_year_abbr': 'シングルクォーテーションの向きが逆',
+        'apostrophe_in_decade': 'クォーテーション不要'
     }
 
     for error_match in error_patterns.finditer(text):
         error_type = error_match.lastgroup
         error_char = error_match.group()
-        description = error_descriptions.get(error_type, 'Unknown error')
+        description = error_descriptions.get(error_type, 'エラー不明')
 
         punctuation_errors.add((error_char, description))
     return punctuation_errors
@@ -120,7 +120,7 @@ def check_incomplete_pairs(text):
                     continue
             # Extract the string after the punctuation, up to max_string_length characters
             end_pos = min(i+1+max_string_length, len(text))
-            errors.add((text[i: end_pos], 'Mismatched pair'))
+            errors.add((text[i: end_pos], '対応するマークがない。要確認'))
         else:
             continue
 
@@ -128,7 +128,7 @@ def check_incomplete_pairs(text):
         start_punct, pos = stack.pop()
         # Extract the string after the punctuation, up to max_string_length characters
         end_pos = min(pos+max_string_length, len(text))
-        errors.add((text[pos: end_pos], 'Mismatched pair'))
+        errors.add((text[pos: end_pos], '対応するマークがない。要確認'))
     
     return errors
 
@@ -182,12 +182,12 @@ def add_highlights(page_highlights:dict, page, comment_name, error_summary:list)
         description = char_data["description"]
         for rect in match_rects:
             if not rect_is_valid(rect):
-                update_summary(error_summary, char, f"{description}, Invalid rect on page {page.number+1}! NOT highlighted!", count=1)
+                update_summary(error_summary, char, f"{description}, error on page {page.number+1} NOT highlighted!", count=1)
                 continue
             annot = page.add_highlight_annot(rect)
             info = annot.info
             info["title"] = comment_name
-            info["content"] = f"Error found: {char} ({description})"
+            info["content"] = f"「{char}」{description}" # PDF comment template
             annot.set_info(info)
             annot.update()
 
