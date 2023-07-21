@@ -2,7 +2,6 @@ import csv
 import fitz
 import unicodedata, re
 import os
-from config import config
 
 def highlight_punctuation_errors(input_file:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
     comment_name = "PunctChecker"
