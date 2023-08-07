@@ -79,7 +79,7 @@ def check_punctuation_patterns(text):
     
     error_descriptions = {
         'straight_quotes': 'オタマジャクシ型に',
-        'space_around_punct': '記号の前後に半角スペース',
+        'space_around_punct': '記号の前後のスペースを詰める',
         'space_before_closing_quote': '開始のクォーテーションマークに変更',
         'repeated_punct': 'マーク重複',
         'yen_symbol_and_word': '¥ かyen か選択',
