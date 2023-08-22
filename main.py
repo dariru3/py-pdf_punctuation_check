@@ -228,4 +228,4 @@ if __name__ == '__main__':
     dir_name = "test_files"
     output_filename_end = "punct_checker"
     summary_filename = "error_summary"
-    process_directory(dir_name, output_filename_end, summary_filename, skip_chars="", skip_japanese=True)
+    process_directory(dir_name, output_filename_end, summary_filename, skip_chars="•", skip_japanese=True)
