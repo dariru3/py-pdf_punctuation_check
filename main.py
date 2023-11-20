@@ -11,7 +11,7 @@ def highlight_punctuation_errors(input_file:str, output_filename_end:str, summar
     input_pdf = fitz.open(input_file)
     for page_num, page in enumerate(input_pdf):
         page_num +=1
-        if pages and page_num not in pages:
+        if page and page_num not in pages:
               continue
 
         text = page.get_text("text")
