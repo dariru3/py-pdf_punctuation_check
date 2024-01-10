@@ -2,6 +2,9 @@ import csv
 import fitz
 import unicodedata, re
 import os
+import nltk
+from nltk.corpus import words
+nltk.download('words')
 
 def highlight_punctuation_errors(input_file:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
     comment_name = "PunctChecker"
@@ -21,6 +24,19 @@ def highlight_punctuation_errors(input_file:str, output_filename_end:str, summar
 
     export_summary(error_summary, summary_filename)
     save_output_file(input_file, input_pdf, output_filename_end)
+
+def check_hyphenation_errors(text):
+    hyphenation_errors = set()
+    word_list = set(words.words())  # Set of valid English words from NLTK
+    hyphenated_words = re.findall(r'\b\w+-\w+\b', text)  # Finds hyphenated words
+
+    for word in hyphenated_words:
+        parts = word.split('-')
+        # Check if both parts of the hyphenated word are valid words
+        if any(part.lower() not in word_list for part in parts):
+            hyphenation_errors.add((word, '不適切なハイフネーション'))
+
+    return hyphenation_errors
 
 def check_full_width_chars(text, skip_chars, skip_japanese):
     full_width_chars = set()
@@ -133,7 +149,12 @@ def check_incomplete_pairs(text):
     return errors
 
 def check_punctuation_errors(text, summary, skip_chars, skip_japanese=False):
-    errors = check_full_width_chars(text, skip_chars, skip_japanese) | check_punctuation_patterns(text) | check_incomplete_pairs(text)
+    errors = (
+        check_full_width_chars(text, skip_chars, skip_japanese) 
+        | check_punctuation_patterns(text) 
+        | check_incomplete_pairs(text)
+        | check_hyphenation_errors(text)
+    )
     error_characters = []
     for error_char, error_description in errors:
         error_characters.append([error_char, error_description])
