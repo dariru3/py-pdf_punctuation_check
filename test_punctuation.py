@@ -10,10 +10,10 @@ def testPunctuation():
     I graduated ‘03
     The 1980's were weird
     90's were awesome
-    What about the 890's?
+    What made it so awesome?The music?
     """
     test_summary = []
-    check_punctuation_errors(test_sentences,test_summary)
+    check_punctuation_errors(test_sentences,test_summary,skip_chars="")
     print(f"errors: {test_summary}")
 
 if __name__ == '__main__':

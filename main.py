@@ -4,7 +4,7 @@ import unicodedata, re
 import os
 import nltk
 from nltk.corpus import words
-nltk.download('words')
+# nltk.download('words')
 
 def highlight_punctuation_errors(input_file:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
     comment_name = "PunctChecker"
@@ -90,7 +90,8 @@ def check_punctuation_patterns(text):
         r"(?P<repeated_punct>(?:(?P<punct>[.,;:?!'\[\]{}()“”‘’&%$¥—-]))(?P=punct))|"  # Same punctuation is used twice in a row
         r"(?P<yen_symbol_and_word>¥[\w.,]+\syen)|" # ¥ and yen used at the same time
         r"(?P<incorrect_year_abbr>‘\d{2})|"  # Incorrect year abbreviation
-        r"(?P<apostrophe_in_decade>\b\d{2,4}'s\b)"  # Apostrophe in decade
+        r"(?P<apostrophe_in_decade>\b\d{2,4}'s\b)|"  # Apostrophe in decade
+        r"(?P<missing_space_after_sent>[a-zA-Z]([.?!])[a-zA-Z])"  # No space after punctuation between letters
     )
     
     error_descriptions = {
@@ -100,7 +101,8 @@ def check_punctuation_patterns(text):
         'repeated_punct': 'マーク重複',
         'yen_symbol_and_word': '¥ かyen か選択',
         'incorrect_year_abbr': 'シングルクォーテーションの向きが逆',
-        'apostrophe_in_decade': 'クォーテーション不要'
+        'apostrophe_in_decade': 'クォーテーション不要',
+        'missing_space_after_sent': '文章間の句読点の後にスペースがありません'
     }
 
     for error_match in error_patterns.finditer(text):
