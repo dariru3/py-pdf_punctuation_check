@@ -6,7 +6,7 @@ import nltk
 from nltk.corpus import words
 # nltk.download('words')
 
-def highlight_punctuation_errors(input_file:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
+def highlight_punctuation_errors(input_file:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="", skip_japanese:bool=False, skip_hyphens:bool=False):
     comment_name = "PunctChecker"
     skip_chars = set(skip_chars) if skip_chars else set()
     error_summary = []
@@ -18,7 +18,7 @@ def highlight_punctuation_errors(input_file:str, output_filename_end:str, summar
               continue
 
         text = page.get_text("text")
-        target_chars = check_punctuation_errors(text, error_summary, skip_chars, skip_japanese)
+        target_chars = check_punctuation_errors(text, error_summary, skip_chars, skip_japanese, skip_hyphens)
 
         highlight_errors(target_chars, text, page, comment_name, error_summary)
 
@@ -150,13 +150,14 @@ def check_incomplete_pairs(text):
     
     return errors
 
-def check_punctuation_errors(text, summary, skip_chars, skip_japanese=False):
+def check_punctuation_errors(text, summary, skip_chars, skip_japanese=False, skip_hyphens=False):
     errors = (
         check_full_width_chars(text, skip_chars, skip_japanese) 
         | check_punctuation_patterns(text) 
         | check_incomplete_pairs(text)
-        | check_hyphenation_errors(text)
     )
+    if not skip_hyphens:
+        errors |= check_hyphenation_errors(text)
     error_characters = []
     for error_char, error_description in errors:
         error_characters.append([error_char, error_description])
@@ -241,14 +242,14 @@ def save_output_file(input_file, input_pdf, output_filename_end):
     input_pdf.save(output_file_name, garbage=3, deflate=True)
     input_pdf.close()
 
-def process_directory(dir_name:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="",skip_japanese:bool=False):
+def process_directory(dir_name:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="", skip_japanese:bool=False, skip_hyphens:bool=False):
     for file_name in os.listdir(dir_name):
         if file_name.endswith(".pdf"):
             full_path = os.path.join(dir_name, file_name)
-            highlight_punctuation_errors(full_path, output_filename_end, summary_filename, pages, skip_chars,skip_japanese)
+            highlight_punctuation_errors(full_path, output_filename_end, summary_filename, pages, skip_chars, skip_japanese, skip_hyphens)
 
 if __name__ == '__main__':
     dir_name = "test_files"
     output_filename_end = "punct_checker"
     summary_filename = "error_summary"
-    process_directory(dir_name, output_filename_end, summary_filename, skip_chars="•", skip_japanese=True)
+    process_directory(dir_name, output_filename_end, summary_filename, skip_chars="•", skip_japanese=True, skip_hyphens=False)
