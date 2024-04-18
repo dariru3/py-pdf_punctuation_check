@@ -102,7 +102,7 @@ def check_punctuation_patterns(text):
         'yen_symbol_and_word': '¥ かyen か選択',
         'incorrect_year_abbr': 'シングルクォーテーションの向きが逆',
         'apostrophe_in_decade': 'クォーテーション不要',
-        'missing_space_after_sent': '文章間の句読点の後にスペースがありません'
+        'missing_space_after_sent': '文章間の句読点の後にスペースがない'
     }
 
     for error_match in error_patterns.finditer(text):
