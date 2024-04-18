@@ -28,7 +28,7 @@ def highlight_punctuation_errors(input_file:str, output_filename_end:str, summar
 def check_hyphenation_errors(text):
     hyphenation_errors = set()
     word_list = set(words.words())  # Set of valid English words from NLTK
-    hyphenated_words = re.findall(r'\b\w+-\w+\b', text)  # Finds hyphenated words
+    hyphenated_words = re.findall(r'\b[a-zA-Z]+-[a-zA-Z]+\b', text)  # Finds hyphenated words
 
     for word in hyphenated_words:
         parts = word.split('-')
