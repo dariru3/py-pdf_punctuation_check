@@ -22,7 +22,7 @@ def highlight_punctuation_errors(input_file:str, output_filename_end:str, summar
 
         highlight_errors(target_chars, text, page, comment_name, error_summary)
 
-    export_summary(error_summary, summary_filename)
+    # export_summary(error_summary, summary_filename)
     save_output_file(input_file, input_pdf, output_filename_end)
 
 def check_hyphenation_errors(text):
