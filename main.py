@@ -227,7 +227,7 @@ def highlight_errors(target_char, text, page, comment_name, error_summary):
 
 def export_summary(error_summary:list, summary_filename):
     fieldnames = ['Character', 'Count', 'Description']
-    with open(f"test_files/{summary_filename}.csv", mode='w', newline='', encoding='utf-8') as csv_file:
+    with open(f"input_files/{summary_filename}.csv", mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         csv_writer.writeheader()
         for entry in error_summary:
@@ -249,7 +249,7 @@ def process_directory(dir_name:str, output_filename_end:str, summary_filename:st
             highlight_punctuation_errors(full_path, output_filename_end, summary_filename, pages, skip_chars, skip_japanese, skip_hyphens)
 
 if __name__ == '__main__':
-    dir_name = "test_files"
+    dir_name = "input_files"
     output_filename_end = "punct_checker"
     summary_filename = "error_summary"
     process_directory(dir_name, output_filename_end, summary_filename, skip_chars="•", skip_japanese=True, skip_hyphens=False)
