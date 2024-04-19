@@ -243,19 +243,22 @@ def save_output_file(input_file, input_pdf, output_filename_end):
     input_pdf.close()
 
 def process_directory(dir_name:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="", skip_japanese:bool=False, skip_hyphens:bool=False):
-    files_processed = False
+    processed_files = set()
     for file_name in os.listdir(dir_name):
-        if file_name.endswith(".pdf") and not file_name.endswith(output_filename_end + ".pdf"):
+        if file_name.endswith(output_filename_end + ".pdf"):
+            processed_files.add(file_name)
+            source_file_name = file_name.replace(output_filename_end + ".pdf", ".pdf")
+            processed_files.add(source_file_name)
+        
+    for file_name in os.listdir(dir_name):
+        if file_name.endswith(".pdf") and file_name not in processed_files:
             full_path = os.path.join(dir_name, file_name)
             highlight_punctuation_errors(full_path, output_filename_end, summary_filename, pages, skip_chars, skip_japanese, skip_hyphens)
-            files_processed = True
         else:
-            continue
-    if not files_processed:
-        print('No eligible files to process.')
+            print(f'Skipping {file_name}: already processed.')
 
 if __name__ == '__main__':
-    dir_name = "input_files"
+    dir_name = "/Users/daryl-villalobos/Google Drive/My Drive/Punct Check Inbox"
     output_filename_end = "punct_checker"
     summary_filename = "error_summary"
     process_directory(dir_name, output_filename_end, summary_filename, skip_chars="•", skip_japanese=True, skip_hyphens=False)
