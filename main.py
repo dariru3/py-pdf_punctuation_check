@@ -259,6 +259,6 @@ def process_directory(dir_name:str, output_filename_end:str, pages:list=None, sk
             print(f'Skipping {file_name}')
 
 if __name__ == '__main__':
-    dir_name = "/Users/daryl-villalobos/Google Drive/My Drive/Punct Check Inbox"
+    dir_name = "/Users/daryl-villalobos/Google Drive/My Drive/Punct Check Magic Box"
     output_filename_end = "punct_checker"
     process_directory(dir_name, output_filename_end, skip_chars="•", skip_japanese=True, skip_hyphens=False)
