@@ -93,7 +93,7 @@ def check_punctuation_patterns(text):
         r"(?P<apostrophe_in_decade>\b\d{2,4}'s\b)|"  # Apostrophe in decade
         r"(?P<missing_space_after_sent>[a-zA-Z]([.?!])[a-zA-Z])"  # No space after punctuation between letters
     )
-    
+
     error_descriptions = {
         'straight_quotes': 'オタマジャクシ型に',
         'space_around_punct': '記号の前後のスペースを詰める',
@@ -147,13 +147,13 @@ def check_incomplete_pairs(text):
         # Extract the string after the punctuation, up to max_string_length characters
         end_pos = min(pos+max_string_length, len(text))
         errors.add((text[pos: end_pos], '対応するマークがない。要確認'))
-    
+
     return errors
 
 def check_punctuation_errors(text, summary, skip_chars, skip_japanese=False, skip_hyphens=False):
     errors = (
-        check_full_width_chars(text, skip_chars, skip_japanese) 
-        | check_punctuation_patterns(text) 
+        check_full_width_chars(text, skip_chars, skip_japanese)
+        | check_punctuation_patterns(text)
         | check_incomplete_pairs(text)
     )
     if not skip_hyphens:
@@ -249,7 +249,7 @@ def process_directory(dir_name:str, output_filename_end:str, pages:list=None, sk
             processed_files.add(file_name)
             source_file_name = file_name.replace(f" {output_filename_end}.pdf", ".pdf")
             processed_files.add(source_file_name)
-        
+
     for file_name in os.listdir(dir_name):
         if file_name.endswith(".pdf") and file_name not in processed_files:
             full_path = os.path.join(dir_name, file_name)
@@ -259,6 +259,6 @@ def process_directory(dir_name:str, output_filename_end:str, pages:list=None, sk
             print(f'Skipping {file_name}')
 
 if __name__ == '__main__':
-    dir_name = "/Users/daryl-villalobos/Google Drive/My Drive/Punct Checker Magic Box"
+    dir_name = "input_files" # "/Users/daryl-villalobos/Google Drive/My Drive/Punct Checker Magic Box"
     output_filename_end = "punct_checker"
     process_directory(dir_name, output_filename_end, skip_chars="•", skip_japanese=True, skip_hyphens=False)
