@@ -1,6 +1,6 @@
 *.pdf
 *.csv
-input_files/
+input_files/*
 config.py
 __pycache__/
 .DS_Store
