@@ -6,7 +6,15 @@ import nltk
 from nltk.corpus import words
 # nltk.download('words')
 
-def highlight_punctuation_errors(input_file:str, output_filename_end:str, summary_filename:str, pages:list=None, skip_chars:str="", skip_japanese:bool=False, skip_hyphens:bool=False):
+def highlight_punctuation_errors(
+    input_file:str
+    , output_filename_end:str
+    , summary_filename:str
+    , pages:list=None
+    , skip_chars:str=""
+    , skip_japanese:bool=False
+    , skip_hyphens:bool=False):
+
     comment_name = "PunctChecker"
     skip_chars = set(skip_chars) if skip_chars else set()
     error_summary = []
