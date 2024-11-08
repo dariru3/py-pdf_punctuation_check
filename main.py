@@ -1,5 +1,5 @@
 import csv
-import fitz
+import pymupdf
 import unicodedata, re
 import os
 import nltk
@@ -11,7 +11,7 @@ def highlight_punctuation_errors(input_file:str, output_filename_end:str, summar
     skip_chars = set(skip_chars) if skip_chars else set()
     error_summary = []
 
-    input_pdf = fitz.open(input_file)
+    input_pdf = pymupdf.open(input_file)
     for page_num, page in enumerate(input_pdf):
         page_num +=1
         if pages and page_num not in pages:
